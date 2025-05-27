@@ -8,8 +8,8 @@ export class TrabajadorController {
   constructor(private readonly trabajadorService: TrabajadorService) {}
 
   @Post()
-  create(@Body() createTrabajadorDto: CreateTrabajadorDto) {
-    return this.trabajadorService.create(createTrabajadorDto);
+  create(@Body() dto: CreateTrabajadorDto) {
+    return this.trabajadorService.create(dto);
   }
 
   @Get()
@@ -23,8 +23,8 @@ export class TrabajadorController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTrabajadorDto: UpdateTrabajadorDto) {
-    return this.trabajadorService.update(+id, updateTrabajadorDto);
+  update(@Param('id') id: string, @Body() dto: UpdateTrabajadorDto) {
+    return this.trabajadorService.update(+id, dto);
   }
 
   @Delete(':id')

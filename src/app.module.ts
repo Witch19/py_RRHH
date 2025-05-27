@@ -3,10 +3,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-/*import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
-import { TipoTrabajoService } from './categories/categories.module';
-import { PostsModule } from './posts/posts.module';*/
 import { TipoTrabajoModule } from './tipo-trabajo/tipo-trabajo.module';
 import { CursosTrabajadoresModule } from './cursos-trabajadores/cursos-trabajadores.module';
 import { EducacionModule } from './educacion/educacion.module';
@@ -28,9 +24,6 @@ import { AuthModule } from './auth/auth.module';
       ssl: { rejectUnauthorized: false },
     }),
     AuthModule,
-    /*UsersModule,
-    CategoriesModule,
-    PostsModule,*/
     TipoTrabajoModule,
     CursosTrabajadoresModule,
     EducacionModule,

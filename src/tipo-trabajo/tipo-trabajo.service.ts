@@ -4,9 +4,12 @@ import { UpdateTipoTrabajoDto } from './dto/update-tipo-trabajo.dto';
 
 @Injectable()
 export class TipoTrabajoService {
-  create(createTipoTrabajoDto: CreateTipoTrabajoDto) {
-    return 'This action adds a new tipoTrabajo';
+  repo: any;
+  create(createDto: CreateTipoTrabajoDto) {
+    const tipoTrabajo = this.repo.create(createDto);
+    return this.repo.save(tipoTrabajo);
   }
+  
 
   findAll() {
     return `This action returns all tipoTrabajo`;

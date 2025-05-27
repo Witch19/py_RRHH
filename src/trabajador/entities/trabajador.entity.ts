@@ -1,1 +1,3 @@
-export class Trabajador {}
+export class Trabajador {
+    tipoTrabajo: any;
+}

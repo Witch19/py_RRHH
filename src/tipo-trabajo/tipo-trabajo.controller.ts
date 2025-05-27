@@ -8,9 +8,10 @@ export class TipoTrabajoController {
   constructor(private readonly tipoTrabajoService: TipoTrabajoService) {}
 
   @Post()
-  create(@Body() createTipoTrabajoDto: CreateTipoTrabajoDto) {
-    return this.tipoTrabajoService.create(createTipoTrabajoDto);
-  }
+create(@Body() dto: CreateTipoTrabajoDto) {
+  return this.tipoTrabajoService.create(dto);
+}
+
 
   @Get()
   findAll() {

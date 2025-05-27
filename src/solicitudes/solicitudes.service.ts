@@ -1,26 +1,35 @@
 import { Injectable } from '@nestjs/common';
-import { CreateSolicitudeDto } from './dto/create-solicitude.dto';
-import { UpdateSolicitudeDto } from './dto/update-solicitude.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Solicitud } from './entities/solicitude.entity';
+import { CreateSolicitudDto } from './dto/create-solicitude.dto';
 
 @Injectable()
 export class SolicitudesService {
-  create(createSolicitudeDto: CreateSolicitudeDto) {
-    return 'This action adds a new solicitude';
+  constructor(
+    @InjectRepository(Solicitud)
+    private solicitudRepo: Repository<Solicitud>,
+  ) {}
+
+  create(createSolicitudDto: CreateSolicitudDto) {
+    const solicitud = this.solicitudRepo.create(createSolicitudDto);
+    return this.solicitudRepo.save(solicitud);
   }
 
   findAll() {
-    return `This action returns all solicitudes`;
+    return this.solicitudRepo.find({ relations: ['trabajador'] });
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} solicitude`;
+    return this.solicitudRepo.findOne(id, { relations: ['trabajador'] });
   }
 
-  update(id: number, updateSolicitudeDto: UpdateSolicitudeDto) {
-    return `This action updates a #${id} solicitude`;
+  async update(id: number, updateData: Partial<CreateSolicitudDto>) {
+    await this.solicitudRepo.update(id, updateData);
+    return this.findOne(id);
   }
 
   remove(id: number) {
-    return `This action removes a #${id} solicitude`;
+    return this.solicitudRepo.delete(id);
   }
 }

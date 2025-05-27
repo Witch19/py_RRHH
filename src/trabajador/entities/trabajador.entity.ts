@@ -19,4 +19,5 @@ export class Trabajador {
   @ManyToOne(() => TipoTrabajo, tipo => tipo.trabajadores)
   @JoinColumn({ name: 'tipo_trabajo_id' })
   tipoTrabajo: TipoTrabajo;
+    solicitudes: any;
 }

@@ -8,8 +8,6 @@ import { TipoTrabajo } from '../tipo-trabajo/entities/tipo-trabajo.entity';
 
 @Injectable()
 export class TrabajadorService {
-  tipoTrabajoRepo: any;
-  trabajadorRepo: any;
   constructor(
     @InjectRepository(Trabajador)
     private trabajadorRepository: Repository<Trabajador>,
@@ -19,17 +17,16 @@ export class TrabajadorService {
   ) {}
 
   async create(dto: CreateTrabajadorDto) {
-    const tipoTrabajo = await this.tipoTrabajoRepo.findOneBy({ id: dto.tipoTrabajoId });
-    const trabajador = this.trabajadorRepo.create({
+    const tipoTrabajo = await this.tipoTrabajoRepository.findOneBy({ id: dto.tipoTrabajoId });
+    const trabajador = this.trabajadorRepository.create({
       nombre: dto.nombre,
       apellido: dto.apellido,
       email: dto.email,
       tipoTrabajo,
     });
-    return this.trabajadorRepo.save(trabajador);
+    return this.trabajadorRepository.save(trabajador);
   }
   
-
   findAll() {
     return this.trabajadorRepository.find({ relations: ['tipoTrabajo'] });
   }
@@ -43,10 +40,9 @@ export class TrabajadorService {
     if (!trabajador) return null;
 
     if (dto.tipoTrabajoId) {
-      const tipoTrabajo = await this.tipoTrabajoRepo.findOneBy({ id: dto.tipoTrabajoId });
+      const tipoTrabajo = await this.tipoTrabajoRepository.findOneBy({ id: dto.tipoTrabajoId });
       trabajador.tipoTrabajo = tipoTrabajo;
     }
-    
 
     Object.assign(trabajador, dto);
     return this.trabajadorRepository.save(trabajador);

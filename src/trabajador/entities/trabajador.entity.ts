@@ -1,7 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm';
 import { TipoTrabajo } from '../../tipo-trabajo/entities/tipo-trabajo.entity';
-import { CursosTrabajadore } from 'src/cursos-trabajadores/entities/cursos-trabajador.entity';
-
+import { CursosTrabajadore } from '../../cursos-trabajadores/entities/cursos-trabajador.entity';
+import { Solicitud } from '../../solicitudes/entities/solicitude.entity';
 
 @Entity()
 export class Trabajador {
@@ -15,14 +15,14 @@ export class Trabajador {
   apellido: string;
 
   @Column()
-  correo: string;
+  email: string;
 
-  @OneToMany(() => CursosTrabajadore, ct => ct.trabajador)
+  @ManyToOne(() => TipoTrabajo, tipoTrabajo => tipoTrabajo.trabajadores, { eager: true })
+  tipoTrabajo?: TipoTrabajo;
+
+  @OneToMany(() => CursosTrabajadore, cursosTrabajadore => cursosTrabajadore.trabajador)
   cursos: CursosTrabajadore[];
 
-
-  @ManyToOne(() => TipoTrabajo, tipo => tipo.trabajadores)
-  @JoinColumn({ name: 'tipo_trabajo_id' })
-  tipoTrabajo: TipoTrabajo;
-    solicitudes: any;
+  @OneToMany(() => Solicitud, solicitud => solicitud.trabajador)
+  solicitudes: Solicitud[];
 }

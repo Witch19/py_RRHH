@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
 import { Trabajador } from 'src/trabajador/entities/trabajador.entity';
-import { Curso } from 'src/curso/entities/curso.entity'; // Asumiendo que existe el módulo `curso`
+import { Curso } from 'src/curso/entities/curso.entity'; 
 
 @Entity()
 export class CursosTrabajadore {

@@ -18,14 +18,21 @@ export class TrabajadorService {
 
   async create(dto: CreateTrabajadorDto) {
     const tipoTrabajo = await this.tipoTrabajoRepository.findOneBy({ id: dto.tipoTrabajoId });
+  
+    if (!tipoTrabajo) {
+      throw new Error('Tipo de trabajo no encontrado');
+    }
+  
     const trabajador = this.trabajadorRepository.create({
       nombre: dto.nombre,
       apellido: dto.apellido,
       email: dto.email,
-      tipoTrabajo,
+      tipoTrabajo: tipoTrabajo, 
     });
+  
     return this.trabajadorRepository.save(trabajador);
   }
+  
   
   findAll() {
     return this.trabajadorRepository.find({ relations: ['tipoTrabajo'] });
@@ -38,15 +45,19 @@ export class TrabajadorService {
   async update(id: number, dto: UpdateTrabajadorDto) {
     const trabajador = await this.trabajadorRepository.findOneBy({ id });
     if (!trabajador) return null;
-
+  
     if (dto.tipoTrabajoId) {
       const tipoTrabajo = await this.tipoTrabajoRepository.findOneBy({ id: dto.tipoTrabajoId });
+      if (!tipoTrabajo) {
+        throw new Error('TipoTrabajo no encontrado');
+      }
       trabajador.tipoTrabajo = tipoTrabajo;
     }
-
+  
     Object.assign(trabajador, dto);
     return this.trabajadorRepository.save(trabajador);
   }
+  
 
   remove(id: number) {
     return this.trabajadorRepository.delete(id);

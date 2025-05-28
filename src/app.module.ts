@@ -5,9 +5,12 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TipoTrabajoModule } from './tipo-trabajo/tipo-trabajo.module';
 import { CursosTrabajadoresModule } from './cursos-trabajadores/cursos-trabajadores.module';
-import { EducacionModule } from './educacion/educacion.module';
 import { SolicitudesModule } from './solicitudes/solicitudes.module';
+import { TrabajadorModule } from './trabajador/trabajador.module';
 import { AuthModule } from './auth/auth.module';
+import { CursoModule } from './curso/curso.module';
+import { TipoTrabajoController } from './tipo-trabajo/tipo-trabajo.controller';
+import { TipoTrabajoService } from './tipo-trabajo/tipo-trabajo.service';
 
 @Module({
   imports: [
@@ -21,16 +24,19 @@ import { AuthModule } from './auth/auth.module';
       database: process.env.DB_NAME,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
-      ssl: { rejectUnauthorized: false },
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+
     }),
     AuthModule,
     TipoTrabajoModule,
     CursosTrabajadoresModule,
-    EducacionModule,
     SolicitudesModule,
+    TrabajadorModule,
+    CursoModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, TipoTrabajoController],
+  providers: [AppService, TipoTrabajoService],
+  exports: [TypeOrmModule],
 })
 export class AppModule {}
   

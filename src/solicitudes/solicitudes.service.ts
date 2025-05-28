@@ -9,7 +9,7 @@ export class SolicitudesService {
   constructor(
     @InjectRepository(Solicitud)
     private solicitudRepo: Repository<Solicitud>,
-  ) {}
+  ) { }
 
   create(createSolicitudDto: CreateSolicitudDto) {
     const solicitud = this.solicitudRepo.create(createSolicitudDto);
@@ -21,7 +21,11 @@ export class SolicitudesService {
   }
 
   findOne(id: number) {
-    return this.solicitudRepo.findOne(id, { relations: ['trabajador'] });
+    return this.solicitudRepo.findOne({
+      where: { id },
+      relations: ['trabajador'],
+    });
+
   }
 
   async update(id: number, updateData: Partial<CreateSolicitudDto>) {

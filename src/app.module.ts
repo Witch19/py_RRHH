@@ -24,9 +24,9 @@ import { TipoTrabajoService } from './tipo-trabajo/tipo-trabajo.service';
       database: process.env.DB_NAME,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
-      ssl: { 
+      /*ssl: { 
         rejectUnauthorized: false, 
-      } ,
+      } ,*/
 
     }),
     AuthModule,

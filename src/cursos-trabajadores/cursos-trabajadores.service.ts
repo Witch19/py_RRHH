@@ -1,27 +1,33 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CursosTrabajadore } from './entities/cursos-trabajador.entity';
-import { CreateCursosTrabajadoreDto } from './dto/create-cursos-trabajadore.dto';
-import { UpdateCursosTrabajadoreDto } from './dto/update-cursos-trabajadore.dto';
+import { CursosTrabajadores } from './entities/cursos-trabajadores.entity';
+import { CreateCursosTrabajadoresDto } from './dto/create-cursos-trabajadores.dto';
+import { UpdateCursosTrabajadoresDto } from './dto/update-cursos-trabajadores.dto';
 
 @Injectable()
 export class CursosTrabajadoresService {
   constructor(
-    @InjectRepository(CursosTrabajadore)
-    private readonly repo: Repository<CursosTrabajadore>
+    @InjectRepository(CursosTrabajadores)
+    private readonly repo: Repository<CursosTrabajadores>
   ) {}
 
-  create(dto: CreateCursosTrabajadoreDto) {
-    const nuevaRelacion = this.repo.create({
-      trabajador: { id: dto.trabajadorId },
-      curso: { id: dto.cursoId },
-      fechaRealizacion: dto.fechaRealizacion,
-      aprobado: dto.aprobado,
-    });
+    async create(dto: CreateCursosTrabajadoresDto) {
+    try {
+      const nuevaRelacion = this.repo.create({
+        trabajador: { id: dto.trabajadorId },
+        curso: { id: dto.cursoId },
+        fechaRealizacion: dto.fechaRealizacion,
+        aprobado: dto.aprobado,
+      });
 
-    return this.repo.save(nuevaRelacion);
+      return await this.repo.save(nuevaRelacion);
+    } catch (error) {
+      console.error('❌ Error al guardar curso-trabajador:', error);
+      throw error;
+    }
   }
+
 
   findAll() {
     return this.repo.find({ relations: ['trabajador', 'curso'] });
@@ -31,7 +37,7 @@ export class CursosTrabajadoresService {
     return this.repo.findOne({ where: { id }, relations: ['trabajador', 'curso'] });
   }
 
-  async update(id: number, dto: UpdateCursosTrabajadoreDto) {
+  async update(id: number, dto: UpdateCursosTrabajadoresDto) {
     const registro = await this.repo.findOneBy({ id });
     if (!registro) throw new NotFoundException('Registro no encontrado');
 

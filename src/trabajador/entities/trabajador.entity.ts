@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm';
 import { TipoTrabajo } from '../../tipo-trabajo/entities/tipo-trabajo.entity';
-import { CursosTrabajadore } from '../../cursos-trabajadores/entities/cursos-trabajador.entity';
+import { CursosTrabajadores } from '../../cursos-trabajadores/entities/cursos-trabajadores.entity';
 import { Solicitud } from '../../solicitudes/entities/solicitude.entity';
 
 @Entity()
@@ -20,8 +20,8 @@ export class Trabajador {
   @ManyToOne(() => TipoTrabajo, tipoTrabajo => tipoTrabajo.trabajadores, { eager: true })
   tipoTrabajo?: TipoTrabajo;
 
-  @OneToMany(() => CursosTrabajadore, cursosTrabajadore => cursosTrabajadore.trabajador)
-  cursos: CursosTrabajadore[];
+  @OneToMany(() => CursosTrabajadores, cursosTrabajadore => cursosTrabajadore.trabajador)
+  cursos: CursosTrabajadores[];
 
   @OneToMany(() => Solicitud, solicitud => solicitud.trabajador)
   solicitudes: Solicitud[];

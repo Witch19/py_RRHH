@@ -1,6 +1,6 @@
 import { IsBoolean, IsDateString, IsInt } from 'class-validator';
 
-export class CreateCursosTrabajadoreDto {
+export class CreateCursosTrabajadoresDto {
   @IsInt()
   trabajadorId: number;
 

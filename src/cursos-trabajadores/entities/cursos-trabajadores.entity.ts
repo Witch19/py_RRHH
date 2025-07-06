@@ -3,7 +3,7 @@ import { Trabajador } from 'src/trabajador/entities/trabajador.entity';
 import { Curso } from 'src/curso/entities/curso.entity'; 
 
 @Entity()
-export class CursosTrabajadore {
+export class CursosTrabajadores {
   @PrimaryGeneratedColumn()
   id: number;
 

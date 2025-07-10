@@ -13,6 +13,10 @@ import { TipoTrabajoController } from './tipo-trabajo/tipo-trabajo.controller';
 import { TipoTrabajoService } from './tipo-trabajo/tipo-trabajo.service';
 import { MongooseModule } from '@nestjs/mongoose';
 
+import { User, UserSchema } from './auth/schemas/user.schema';
+import { PassportModule } from '@nestjs/passport';
+import { JwtModule } from '@nestjs/jwt';
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -38,6 +42,16 @@ import { MongooseModule } from '@nestjs/mongoose';
         uri: config.get<string>('MONGO_URI'),
       }),
     }),
+
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+
+    // Registrar y exportar Passport y Jwt
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    JwtModule.register({
+  secret: process.env.JWT_SECRET, // o tu clave secreta directa
+  signOptions: { expiresIn: '1d' },
+}),
+
     
     AuthModule,
     TipoTrabajoModule,

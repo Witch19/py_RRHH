@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TipoTrabajoModule } from './tipo-trabajo/tipo-trabajo.module';
@@ -11,6 +11,7 @@ import { AuthModule } from './auth/auth.module';
 import { CursoModule } from './curso/curso.module';
 import { TipoTrabajoController } from './tipo-trabajo/tipo-trabajo.controller';
 import { TipoTrabajoService } from './tipo-trabajo/tipo-trabajo.service';
+import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
   imports: [
@@ -29,6 +30,15 @@ import { TipoTrabajoService } from './tipo-trabajo/tipo-trabajo.service';
       } ,*/
 
     }),
+
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        uri: config.get<string>('MONGO_URI'),
+      }),
+    }),
+    
     AuthModule,
     TipoTrabajoModule,
     CursosTrabajadoresModule,

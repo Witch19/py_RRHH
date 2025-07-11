@@ -13,6 +13,9 @@ export class User {
 
   @Prop({ required: true })
   password: string;
+
+  @Prop({ default: 'user' }) // valor por defecto
+  role: string; // puede ser 'admin', 'user', etc.
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

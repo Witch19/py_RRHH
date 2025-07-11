@@ -4,7 +4,7 @@ import {
   Body,
   Get,
   Post,
-  Req, Request,
+  Req,
   UseGuards,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -14,23 +14,26 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { UserDocument } from './schemas/user.schema';
 import { Public } from '../public.decorator';
-import { User } from '../user.decorator';
-
+import { Roles } from '../roles/roles.decorator';
+import { RolesGuard } from '../roles/roles.guard';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
-  
+  constructor(private readonly authService: AuthService) {}
+
+  @Public()
   @Post('register')
   async register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
 
-   @Public()
+  @Public()
   @Post('login')
   async login(@Body() body: { email: string; password: string }) {
     const { email, password } = body;
-    if (!email || !password) throw new UnauthorizedException('Email y contraseña son obligatorios');
+    if (!email || !password) {
+      throw new UnauthorizedException('Email y contraseña son obligatorios');
+    }
 
     const user = await this.authService.validateUser(email, password);
     if (!user) throw new UnauthorizedException('Credenciales inválidas');
@@ -42,15 +45,15 @@ export class AuthController {
     return { user: userWithoutPassword, token };
   }
 
-  @UseGuards(JwtAuthGuard)
-@Get('profile')
-async getProfile(@User() user: any) {
-  return this.authService.getProfile(user.sub);
-}
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'user')
+  @Get('profile')
+  async getProfile(@Req() req: any) {
+    return this.authService.getProfile(req.user.sub);
+  }
 
-
-  
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'user')
   @Put('profile')
   async updateProfile(@Req() req: any, @Body() dto: UpdateUserDto) {
     const updated = await this.authService.updateProfile(req.user.sub, dto);

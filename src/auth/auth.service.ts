@@ -16,7 +16,7 @@ export class AuthService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private jwtService: JwtService
-  ) { }
+  ) {}
 
   // Registro de usuario
   async register(dto: RegisterDto) {
@@ -37,20 +37,19 @@ export class AuthService {
   async validateUser(email: string, password: string): Promise<User | null> {
     const user = await this.userModel.findOne({ email }).exec();
     if (!user) {
-  console.log('❌ Usuario no encontrado');
-  return null;
-}
+      console.log('❌ Usuario no encontrado');
+      return null;
+    }
 
-const passwordValid = await bcrypt.compare(password, user.password);
-if (!passwordValid) {
-  console.log('❌ Contraseña incorrecta');
-  return null;
-}
+    const passwordValid = await bcrypt.compare(password, user.password);
+    if (!passwordValid) {
+      console.log('❌ Contraseña incorrecta');
+      return null;
+    }
 
-console.log('✅ Usuario autenticado');
-return user;
+    console.log('✅ Usuario autenticado');
+    return user;
   }
-
 
   // Generar JWT
   generateJwt(user: UserDocument) {
@@ -58,6 +57,7 @@ return user;
       sub: user._id,
       email: user.email,
       username: user.username,
+      role: user.role,  // <-- Incluye el rol en el token
     };
     return this.jwtService.sign(payload);
   }

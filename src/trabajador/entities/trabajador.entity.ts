@@ -1,7 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm';
-import { TipoTrabajo } from '../../tipo-trabajo/entities/tipo-trabajo.entity';
-import { CursosTrabajadores } from '../../cursos-trabajadores/entities/cursos-trabajadores.entity';
-import { Solicitud } from '../../solicitudes/entities/solicitude.entity';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { TipoTrabajo } from 'src/tipo-trabajo/entities/tipo-trabajo.entity.js';// Asegúrate de que la ruta sea correcta
 
 @Entity()
 export class Trabajador {
@@ -14,15 +12,19 @@ export class Trabajador {
   @Column()
   apellido: string;
 
-  @Column()
+  @Column({ unique: true })
   email: string;
 
-  @ManyToOne(() => TipoTrabajo, tipoTrabajo => tipoTrabajo.trabajadores, { eager: true })
-  tipoTrabajo?: TipoTrabajo;
+  @Column()
+  password: string;
 
-  @OneToMany(() => CursosTrabajadores, cursosTrabajadore => cursosTrabajadore.trabajador)
-  cursos: CursosTrabajadores[];
+  @Column({ nullable: true })
+  role: string;
 
-  @OneToMany(() => Solicitud, solicitud => solicitud.trabajador)
-  solicitudes: Solicitud[];
+  @ManyToOne(() => TipoTrabajo, (tipoTrabajo) => tipoTrabajo.trabajadores)
+  @JoinColumn({ name: 'tipoTrabajoId' })
+  tipoTrabajo: TipoTrabajo;
+
+  @Column({ nullable: true })
+  tipoTrabajoId: number;
 }

@@ -1,18 +1,23 @@
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsString, IsEmail, IsOptional, IsNumber } from 'class-validator';
 
 export class CreateTrabajadorDto {
   @IsString()
-  @IsNotEmpty()
   nombre: string;
 
   @IsString()
-  @IsNotEmpty()
   apellido: string;
 
   @IsEmail()
-  correo: string;
+  email: string;
 
-  @IsNotEmpty()
-  tipoTrabajoId: number;
-  email: any;
+  @IsString()
+  password: string;  // Debe existir para el hash
+
+  @IsOptional()
+  @IsString()
+  role?: string;  // Opcional, puede venir o no
+
+  @IsOptional()
+  @IsNumber()
+  tipoTrabajoId?: number;
 }

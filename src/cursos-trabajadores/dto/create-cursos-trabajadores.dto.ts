@@ -1,10 +1,10 @@
-import { IsBoolean, IsDateString, IsInt } from 'class-validator';
+import { IsNumber, IsDateString, IsBoolean } from 'class-validator';
 
 export class CreateCursosTrabajadoresDto {
-  @IsInt()
+  @IsNumber()
   trabajadorId: number;
 
-  @IsInt()
+  @IsNumber()
   cursoId: number;
 
   @IsDateString()

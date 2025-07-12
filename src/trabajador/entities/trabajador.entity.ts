@@ -2,6 +2,7 @@ import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, OneToMany, JoinColum
 import { TipoTrabajo } from 'src/tipo-trabajo/entities/tipo-trabajo.entity';
 import { CursosTrabajadores } from 'src/cursos-trabajadores/entities/cursos-trabajadores.entity';
 import { Solicitud } from 'src/solicitudes/entities/solicitude.entity';
+import { Schema } from '@nestjs/mongoose';
 
 
 @Entity()
@@ -38,4 +39,18 @@ password: string;
 
   @OneToMany(() => Solicitud, solicitud => solicitud.trabajador)
   solicitudes: Solicitud[];
+
+  @Schema()
+export class: any Trabajador: any extends Document {
+  @Prop()
+  nombre: string;
+
+  @Prop()
+  cedula: string;
+
+  // puedes tener otros campos
+}
+
+export const TrabajadorSchema = SchemaFactory.createForClass(Trabajador);
+
 }

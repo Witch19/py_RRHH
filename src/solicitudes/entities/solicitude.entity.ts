@@ -1,5 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
-import { Trabajador } from '../../trabajador/entities/trabajador.entity';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document, Types } from 'mongoose';
 
 export enum EstadoSolicitud {
   PENDIENTE = 'pendiente',
@@ -7,30 +7,29 @@ export enum EstadoSolicitud {
   RECHAZADA = 'rechazada',
 }
 
-@Entity()
-export class Solicitud {
-  @PrimaryGeneratedColumn()
-  id: number;
+@Schema({ timestamps: true })
+export class Solicitud extends Document {
+  @Prop({ required: true })
+  tipo: string; // ejemplo: 'vacaciones', 'permiso'
 
-  @Column()
-  tipo: string; // ejemplo: 'vacaciones', 'permiso', etc.
-
-  @Column({ type: 'text' })
+  @Prop({ type: String, required: true })
   descripcion: string;
 
-  @Column({ type: 'date' })
+  @Prop({ type: Date, required: true })
   fechaInicio: Date;
 
-  @Column({ type: 'date' })
+  @Prop({ type: Date, required: true })
   fechaFin: Date;
 
-  @Column({
-    type: 'enum',
+  @Prop({
+    type: String,
     enum: EstadoSolicitud,
     default: EstadoSolicitud.PENDIENTE,
   })
   estado: EstadoSolicitud;
 
-  @ManyToOne(() => Trabajador, trabajador => trabajador.solicitudes)
-  trabajador: Trabajador;
+  @Prop({ type: Types.ObjectId, ref: 'Trabajador', required: true })
+  trabajador: Types.ObjectId;
 }
+
+export const SolicitudSchema = SchemaFactory.createForClass(Solicitud);

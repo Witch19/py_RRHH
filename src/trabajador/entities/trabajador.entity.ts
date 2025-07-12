@@ -18,8 +18,9 @@ export class Trabajador {
   @Column({ unique: true })
   email: string;
 
-  @Column()
-  password: string;
+  @Column({ default: 'temporal123' })
+password: string;
+
 
   @Column({ nullable: true })
   role: string;

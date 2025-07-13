@@ -1,39 +1,42 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Solicitud } from './entities/solicitude.entity';
 import { CreateSolicitudDto } from './dto/create-solicitude.dto';
+import { Trabajador } from '../trabajador/entities/trabajador.entity';
 
 @Injectable()
 export class SolicitudesService {
-  trabajadorRepo: any;
   constructor(
     @InjectRepository(Solicitud)
-    private solicitudRepo: Repository<Solicitud>,
-  ) { }
+    private readonly solicitudRepo: Repository<Solicitud>,
+    @InjectRepository(Trabajador)
+    private readonly trabajadorRepo: Repository<Trabajador>,
+  ) {}
 
-  async create(createSolicitudDto: CreateSolicitudDto, user: any) {
-    const trabajador = await this.trabajadorRepo.findOne({ where: { email: user.email } });
-    if (!trabajador) throw new Error('Trabajador no encontrado');
+  async create(dto: CreateSolicitudDto, user: any) {
+    const trabajador = await this.trabajadorRepo.findOne({
+      where: { id: user.trabajadorId }, // ✅ Usa trabajadorId en vez de sub
+    });
+
+    if (!trabajador) {
+      throw new NotFoundException('Trabajador no encontrado');
+    }
 
     const solicitud = this.solicitudRepo.create({
-      ...createSolicitudDto,
+      ...dto,
       trabajador,
     });
 
     return this.solicitudRepo.save(solicitud);
   }
 
-
   findAll() {
     return this.solicitudRepo.find({ relations: ['trabajador'] });
   }
 
   findOne(id: number) {
-    return this.solicitudRepo.findOne({
-      where: { id },
-      relations: ['trabajador'],
-    });
+    return this.solicitudRepo.findOne({ where: { id }, relations: ['trabajador'] });
   }
 
   async update(id: number, updateData: Partial<CreateSolicitudDto>) {

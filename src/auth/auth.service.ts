@@ -10,13 +10,21 @@ import { JwtService } from '@nestjs/jwt';
 import { RegisterDto } from './dto/register.dto';
 import { User, UserDocument } from './schemas/user.schema';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Trabajador } from '../trabajador/entities/trabajador.entity';
 
 @Injectable()
 export class AuthService {
+  /*getTrabajadorPorEmail(email: string) {
+    throw new Error('Method not implemented.');
+  }*/
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
-    private jwtService: JwtService
-  ) { }
+    private jwtService: JwtService,
+    @InjectRepository(Trabajador)
+    private readonly trabajadorRepo: Repository<Trabajador>,
+  ) {}
 
   async register(dto: RegisterDto) {
     const existing = await this.userModel.findOne({ email: dto.email });
@@ -50,15 +58,15 @@ export class AuthService {
     return user;
   }
 
-  generateJwt(user: any) {
+  generateJwt(user: any, trabajadorId: number | null) {
   const payload = {
     sub: user._id,
     email: user.email,
     username: user.username,
     role: user.role,
+    trabajadorId, // añadido correctamente
   };
-
-  return this.jwtService.sign(payload); // usa el secreto configurado antes
+  return this.jwtService.sign(payload);
 }
 
 
@@ -70,7 +78,10 @@ export class AuthService {
       throw new NotFoundException('Credenciales inválidas');
     }
 
-    const token = this.generateJwt(user);
+    const trabajador = await this.trabajadorRepo.findOne({ where: { email } });
+    const trabajadorId = trabajador?.id ?? null;
+
+    const token = this.generateJwt(user, trabajadorId);
 
     return {
       access_token: token,
@@ -79,6 +90,7 @@ export class AuthService {
         email: user.email,
         username: user.username,
         role: user.role,
+        trabajadorId,
       },
     };
   }
@@ -90,6 +102,12 @@ export class AuthService {
     }
     return user;
   }
+
+  async getTrabajadorPorEmail(email: string) {
+  return this.trabajadorRepo.findOne({ where: { email } });
+}
+
+
 
   async updateProfile(userId: string, dto: UpdateUserDto) {
     const user = await this.userModel.findById(userId);

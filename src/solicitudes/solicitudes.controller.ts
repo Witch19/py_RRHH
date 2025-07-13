@@ -7,6 +7,7 @@ import {
   Put,
   Delete,
   UseGuards,
+  ParseIntPipe,
   Request,
 } from '@nestjs/common';
 import { SolicitudesService } from './solicitudes.service';
@@ -16,38 +17,41 @@ import { Roles } from '../roles/roles.decorator';
 import { RolesGuard } from '../roles/roles.guard';
 import { Role } from '../enums/role.enum';
 
-@Controller('solicitudes')
 @UseGuards(JwtAuthGuard, RolesGuard)
-export class SolicitudesController {  // <- Asegúrate que diga 'export'
+@Controller('solicitudes')
+export class SolicitudesController {
   constructor(private readonly solicitudesService: SolicitudesService) {}
 
   @Post()
-  @Roles(Role.User, Role.Admin)
-  create(@Body() createSolicitudDto: CreateSolicitudDto, @Request() req) {
-    return this.solicitudesService.create(createSolicitudDto, req.user);
+  @Roles('ADMIN', 'TRABAJADOR')
+  create(@Body() dto: CreateSolicitudDto, @Request() req) {
+    return this.solicitudesService.create(dto, req.user);
   }
 
   @Get()
-  @Roles(Role.Admin)
+  @Roles('ADMIN', 'TRABAJADOR')
   findAll() {
     return this.solicitudesService.findAll();
   }
 
   @Get(':id')
-  @Roles(Role.User, Role.Admin)
-  findOne(@Param('id') id: string) {
-    return this.solicitudesService.findOne(+id);
+  @Roles('ADMIN', 'TRABAJADOR')
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.solicitudesService.findOne(id);
   }
 
   @Put(':id')
-  @Roles(Role.User, Role.Admin)
-  update(@Param('id') id: string, @Body() updateData: Partial<CreateSolicitudDto>) {
-    return this.solicitudesService.update(+id, updateData);
+  @Roles('ADMIN')
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateData: Partial<CreateSolicitudDto>,
+  ) {
+    return this.solicitudesService.update(id, updateData);
   }
 
   @Delete(':id')
-  @Roles(Role.Admin)
-  remove(@Param('id') id: string) {
-    return this.solicitudesService.remove(+id);
+  @Roles('ADMIN')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.solicitudesService.remove(id);
   }
 }

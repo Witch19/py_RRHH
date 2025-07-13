@@ -27,23 +27,32 @@ export class AuthController {
     return this.authService.register(dto);
   }
 
-  @Public()
-  @Post('login')
-  async login(@Body() body: { email: string; password: string }) {
-    const { email, password } = body;
-    if (!email || !password) {
-      throw new UnauthorizedException('Email y contraseña son obligatorios');
-    }
+  
 
-    const user = await this.authService.validateUser(email, password);
-    if (!user) throw new UnauthorizedException('Credenciales inválidas');
-
-    const token = this.authService.generateJwt(user as any);
-    const userData = (user as any).toObject?.() ?? user;
-    const { password: _, ...userWithoutPassword } = userData;
-
-    return { user: userWithoutPassword, token };
+ @Public()
+@Post('login')
+async login(@Body() body: { email: string; password: string }) {
+  const { email, password } = body;
+  if (!email || !password) {
+    throw new UnauthorizedException('Email y contraseña son obligatorios');
   }
+
+  const user = await this.authService.validateUser(email, password);
+  if (!user) throw new UnauthorizedException('Credenciales inválidas');
+
+  // ✅ Buscar trabajador relacionado por email
+  const trabajador = await this.authService.getTrabajadorPorEmail(user.email);
+  const trabajadorId = trabajador?.id ?? null;
+
+  // ✅ Generar token con trabajadorId
+  const token = this.authService.generateJwt(user as any, trabajadorId);
+
+  const userData = (user as any).toObject?.() ?? user;
+  const { password: _, ...userWithoutPassword } = userData;
+
+  return { user: userWithoutPassword, token };
+}
+
 
   @Get('profile') // Ya está protegido globalmente con JwtAuthGuard y RolesGuard
   async getProfile(@Req() req) {

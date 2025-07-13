@@ -21,7 +21,7 @@ export class CursosTrabajadoresController {
   constructor(private readonly service: CursosTrabajadoresService) {}
 
   @Post()
-  @Roles('admin', 'supervisor')
+  @Roles('ADMIN', 'SUPERVISOR')
   create(@Body() dto: CreateCursosTrabajadoresDto) {
     return this.service.create(dto);
   }
@@ -37,13 +37,13 @@ export class CursosTrabajadoresController {
   }
 
   @Patch(':id')
-  @Roles('admin', 'supervisor')
+  @Roles('ADMIN', 'SUPERVISOR')
   update(@Param('id') id: string, @Body() dto: UpdateCursosTrabajadoresDto) {
     return this.service.update(+id, dto);
   }
 
   @Delete(':id')
-  @Roles('admin', 'supervisor')
+  @Roles('ADMIN', 'supervisor')
   remove(@Param('id') id: string) {
     return this.service.remove(+id);
   }

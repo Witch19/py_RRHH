@@ -15,7 +15,7 @@ import { JwtAuthGuard } from 'src/auth/jwt.guard';
 import { Roles } from '../roles/roles.decorator';
 import { RolesGuard } from '../roles/roles.guard';
 
-@Controller('TRABAJADOR')
+@Controller('trabajador')
 export class TrabajadorController {
   constructor(private readonly trabajadorService: TrabajadorService) {}
 

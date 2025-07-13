@@ -1,97 +1,110 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
+
 import { Trabajador } from './entities/trabajador.entity';
 import { CreateTrabajadorDto } from './dto/create-trabajador.dto';
 import { UpdateTrabajadorDto } from './dto/update-trabajador.dto';
 import { TipoTrabajo } from '../tipo-trabajo/entities/tipo-trabajo.entity';
-import * as bcrypt from 'bcrypt';
-import { ConflictException } from '@nestjs/common';
 
 @Injectable()
 export class TrabajadorService {
   constructor(
     @InjectRepository(Trabajador)
-    private trabajadorRepository: Repository<Trabajador>,
-
+    private readonly trabajadorRepository: Repository<Trabajador>,
     @InjectRepository(TipoTrabajo)
-    private tipoTrabajoRepository: Repository<TipoTrabajo>,
-  ) { }
+    private readonly tipoTrabajoRepository: Repository<TipoTrabajo>,
+  ) {}
 
+  /* ------------------------------------------------------------------ */
+  /* CREATE                                                             */
+  /* ------------------------------------------------------------------ */
   async create(dto: CreateTrabajadorDto) {
-    console.log('tipoTrabajoId recibido:', dto.tipoTrabajoId);
-
-    // Buscar el tipo de trabajo
     const tipoTrabajo = await this.tipoTrabajoRepository.findOneBy({
       id: dto.tipoTrabajoId,
     });
+    if (!tipoTrabajo) throw new NotFoundException('Tipo de trabajo no encontrado');
 
-    if (!tipoTrabajo) {
-      throw new Error('Tipo de trabajo no encontrado');
-    }
-
-    // Hashear la contraseña
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-    // Crear entidad trabajador
     const trabajador = this.trabajadorRepository.create({
       nombre: dto.nombre,
       apellido: dto.apellido,
       email: dto.email,
       password: hashedPassword,
-      role: dto.role ?? 'trabajador',
-      tipoTrabajo: tipoTrabajo,
+      role: (dto.role ?? 'TRABAJADOR').toUpperCase(), // normalizamos
+      tipoTrabajo,
     });
 
-    // Guardar y capturar errores si el email ya existe
     try {
       return await this.trabajadorRepository.save(trabajador);
     } catch (error) {
       if (error.code === '23505') {
         throw new ConflictException('Este email ya está registrado');
       }
-      throw error; // otros errores inesperados
+      throw error;
     }
   }
 
-
-
+  /* ------------------------------------------------------------------ */
+  /* READ                                                               */
+  /* ------------------------------------------------------------------ */
   findAll() {
     return this.trabajadorRepository.find({ relations: ['tipoTrabajo'] });
   }
 
-  findOne(id: number) {
-    return this.trabajadorRepository.findOne({ where: { id }, relations: ['tipoTrabajo'] });
+  async findOne(id: number) {
+    const trabajador = await this.trabajadorRepository.findOne({
+      where: { id },
+      relations: ['tipoTrabajo'],
+    });
+    if (!trabajador) throw new NotFoundException('Trabajador no encontrado');
+    return trabajador;
   }
 
+  /* ------------------------------------------------------------------ */
+  /* UPDATE                                                             */
+  /* ------------------------------------------------------------------ */
   async update(id: number, dto: UpdateTrabajadorDto) {
-    const trabajador = await this.trabajadorRepository.findOneBy({ id });
-    if (!trabajador) return null;
+    const trabajador = await this.trabajadorRepository.findOne({
+      where: { id },
+      relations: ['tipoTrabajo'],
+    });
+    if (!trabajador) throw new NotFoundException('Trabajador no encontrado');
 
+    /* tipoTrabajo opcional */
     if (dto.tipoTrabajoId) {
-      const tipoTrabajo = await this.tipoTrabajoRepository.findOneBy({ id: dto.tipoTrabajoId });
-
-      if (!tipoTrabajo) {
-        throw new NotFoundException('Tipo de trabajo no encontrado');
-      }
-
+      const tipoTrabajo = await this.tipoTrabajoRepository.findOneBy({
+        id: dto.tipoTrabajoId,
+      });
+      if (!tipoTrabajo) throw new NotFoundException('Tipo de trabajo no encontrado');
       trabajador.tipoTrabajo = tipoTrabajo;
     }
 
-    // Si viene nueva contraseña, la encripta
+    /* password opcional */
     if (dto.password) {
       trabajador.password = await bcrypt.hash(dto.password, 10);
     }
 
-    // Excluye password del assign si ya se procesó antes
-    const { password, tipoTrabajoId, ...resto } = dto;
-    Object.assign(trabajador, resto);
+    /* otros campos */
+    const { password, tipoTrabajoId, ...rest } = dto;
+    Object.assign(trabajador, rest);
 
-    return this.trabajadorRepository.save(trabajador);
+    await this.trabajadorRepository.save(trabajador);
+    return this.findOne(id); // retorna datos actualizados
   }
 
-
-  remove(id: number) {
-    return this.trabajadorRepository.delete(id);
+  /* ------------------------------------------------------------------ */
+  /* DELETE                                                             */
+  /* ------------------------------------------------------------------ */
+  async remove(id: number) {
+    const { affected } = await this.trabajadorRepository.delete(id);
+    if (!affected) throw new NotFoundException('Trabajador no encontrado');
+    return { message: 'Trabajador eliminado' };
   }
 }

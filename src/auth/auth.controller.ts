@@ -5,21 +5,21 @@ import {
   Get,
   Post,
   Req,
-  UseGuards,
   UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from './jwt.guard';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
-import { UserDocument } from './schemas/user.schema';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { Public } from '../public.decorator';
 import { Roles } from '../roles/roles.decorator';
+import { JwtAuthGuard } from './jwt.guard';
 import { RolesGuard } from '../roles/roles.guard';
 
+@UseGuards(JwtAuthGuard, RolesGuard) // Aplica protección global a todos los endpoints (menos los @Public)
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Public()
   @Post('register')
@@ -38,22 +38,19 @@ export class AuthController {
     const user = await this.authService.validateUser(email, password);
     if (!user) throw new UnauthorizedException('Credenciales inválidas');
 
-    const token = this.authService.generateJwt(user as UserDocument);
+    const token = this.authService.generateJwt(user as any);
     const userData = (user as any).toObject?.() ?? user;
     const { password: _, ...userWithoutPassword } = userData;
 
     return { user: userWithoutPassword, token };
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'user')
-  @Get('profile')
-  async getProfile(@Req() req: any) {
-    return this.authService.getProfile(req.user.sub);
+  @Get('profile') // Ya está protegido globalmente con JwtAuthGuard y RolesGuard
+  async getProfile(@Req() req) {
+    return req.user;
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'user')
+  @Roles('ADMIN', 'USER')
   @Put('profile')
   async updateProfile(@Req() req: any, @Body() dto: UpdateUserDto) {
     const updated = await this.authService.updateProfile(req.user.sub, dto);
@@ -66,4 +63,5 @@ export class AuthController {
       },
     };
   }
+
 }

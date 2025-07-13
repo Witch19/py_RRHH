@@ -9,16 +9,15 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { RegisterDto } from './dto/register.dto';
 import { User, UserDocument } from './schemas/user.schema';
-import { UpdateUserDto } from './dto/update-user.dto'; // Asegúrate de tener este DTO
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private jwtService: JwtService
-  ) {}
+  ) { }
 
-  // Registro de usuario
   async register(dto: RegisterDto) {
     const existing = await this.userModel.findOne({ email: dto.email });
     if (existing) {
@@ -34,7 +33,7 @@ export class AuthService {
     return createdUser.save();
   }
 
-  async validateUser(email: string, password: string): Promise<User | null> {
+  async validateUser(email: string, password: string): Promise<UserDocument | null> {
     const user = await this.userModel.findOne({ email }).exec();
     if (!user) {
       console.log('❌ Usuario no encontrado');
@@ -51,18 +50,39 @@ export class AuthService {
     return user;
   }
 
-  // Generar JWT
-  generateJwt(user: UserDocument) {
-    const payload = {
-      sub: user._id,
-      email: user.email,
-      username: user.username,
-      role: user.role,  // <-- Incluye el rol en el token
+  generateJwt(user: any) {
+  const payload = {
+    sub: user._id,
+    email: user.email,
+    username: user.username,
+    role: user.role,
+  };
+
+  return this.jwtService.sign(payload); // usa el secreto configurado antes
+}
+
+
+
+  async login(email: string, password: string) {
+    const user = await this.validateUser(email, password);
+
+    if (!user) {
+      throw new NotFoundException('Credenciales inválidas');
+    }
+
+    const token = this.generateJwt(user);
+
+    return {
+      access_token: token,
+      user: {
+        id: user._id,
+        email: user.email,
+        username: user.username,
+        role: user.role,
+      },
     };
-    return this.jwtService.sign(payload);
   }
 
-  // Obtener perfil del usuario por ID
   async getProfile(userId: string) {
     const user = await this.userModel.findById(userId).select('-password');
     if (!user) {
@@ -71,14 +91,12 @@ export class AuthService {
     return user;
   }
 
-  // Actualizar perfil (username y/o email)
   async updateProfile(userId: string, dto: UpdateUserDto) {
     const user = await this.userModel.findById(userId);
     if (!user) {
       throw new NotFoundException('Usuario no encontrado');
     }
 
-    // Validar si el nuevo email ya existe
     if (dto.email && dto.email !== user.email) {
       const emailExists = await this.userModel.findOne({ email: dto.email });
       if (emailExists) {

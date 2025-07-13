@@ -14,9 +14,13 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       context.getHandler(),
       context.getClass(),
     ]);
+
     if (isPublic) {
-      return true; // ruta pública, saltar guard
+      console.log('🟢 Ruta pública detectada');
+      return true;
     }
+
+    console.log('🔐 Validando con JwtAuthGuard');
     return super.canActivate(context);
   }
 }

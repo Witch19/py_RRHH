@@ -1,9 +1,14 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+} from 'typeorm';
 import { TipoTrabajo } from 'src/tipo-trabajo/entities/tipo-trabajo.entity';
 import { CursosTrabajadores } from 'src/cursos-trabajadores/entities/cursos-trabajadores.entity';
 import { Solicitud } from 'src/solicitudes/entities/solicitude.entity';
-import { Schema } from '@nestjs/mongoose';
-
 
 @Entity()
 export class Trabajador {
@@ -20,8 +25,7 @@ export class Trabajador {
   email: string;
 
   @Column({ default: 'temporal123' })
-password: string;
-
+  password: string;
 
   @Column({ nullable: true })
   role: string;
@@ -33,24 +37,9 @@ password: string;
   @Column({ nullable: true })
   tipoTrabajoId: number;
 
-  // Aquí la relación correcta con CursosTrabajadores
   @OneToMany(() => CursosTrabajadores, (cursoTrabajador) => cursoTrabajador.trabajador)
   cursos: CursosTrabajadores[];
 
-  @OneToMany(() => Solicitud, solicitud => solicitud.trabajador)
+  @OneToMany(() => Solicitud, (solicitud) => solicitud.trabajador)
   solicitudes: Solicitud[];
-
-  @Schema()
-export class: any Trabajador: any extends Document {
-  @Prop()
-  nombre: string;
-
-  @Prop()
-  cedula: string;
-
-  // puedes tener otros campos
-}
-
-export const TrabajadorSchema = SchemaFactory.createForClass(Trabajador);
-
 }

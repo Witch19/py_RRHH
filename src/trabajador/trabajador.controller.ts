@@ -15,41 +15,41 @@ import { JwtAuthGuard } from 'src/auth/jwt.guard';
 import { Roles } from '../roles/roles.decorator';
 import { RolesGuard } from '../roles/roles.guard';
 
-@Controller('trabajador')
+@Controller('TRABAJADOR')
 export class TrabajadorController {
   constructor(private readonly trabajadorService: TrabajadorService) {}
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles('ADMIN')
   create(@Body() dto: CreateTrabajadorDto) {
     return this.trabajadorService.create(dto);
   }
 
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'trabajador')
+  @Roles('ADMIN', 'TRABAJADOR')
   findAll() {
     return this.trabajadorService.findAll();
   }
 
   @Get(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'trabajador')
+  @Roles('ADMIN', 'TRABAJADOR')
   findOne(@Param('id') id: string) {
     return this.trabajadorService.findOne(+id);
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'trabajador')
+  @Roles('ADMIN')
   update(@Param('id') id: string, @Body() dto: UpdateTrabajadorDto) {
     return this.trabajadorService.update(+id, dto);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles('ADMIN')
   remove(@Param('id') id: string) {
     return this.trabajadorService.remove(+id);
   }

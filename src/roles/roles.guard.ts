@@ -1,25 +1,25 @@
-import {
-  Injectable,
-  CanActivate,
-  ExecutionContext,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { ROLES_KEY } from '../roles/roles.decorator';
+import { Role } from '../enums/role.enum';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.getAllAndMerge<string[]>(ROLES_KEY, [
+    const requiredRoles = this.reflector.getAllAndOverride<Role[]>('roles', [
       context.getHandler(),
       context.getClass(),
     ]);
-    if (!requiredRoles || requiredRoles.length === 0) {
-      return true; // No se definió ningún rol, entonces se permite
-    }
 
-    const { user } = context.switchToHttp().getRequest();
-    return requiredRoles.includes(user.role); // `user.role` viene del JWT
+    const request = context.switchToHttp().getRequest();
+    const user = request.user;
+
+    console.log('➡️ user in canActivate', user);
+
+    if (!requiredRoles) return true;
+    if (!user?.role) return false;
+
+    return requiredRoles.includes(user.role);
   }
 }

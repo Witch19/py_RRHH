@@ -1,20 +1,56 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { CursoController } from './curso.controller';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Patch,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { CursoService } from './curso.service';
+import { CreateCursoDto } from './dto/create-curso.dto';
+import { UpdateCursoDto } from './dto/update-curso.dto';
+import { JwtAuthGuard } from '../auth/jwt.guard';
+import { RolesGuard } from '../roles/roles.guard';
+import { Roles } from '../roles/roles.decorator';
 
-describe('CursoController', () => {
-  let controller: CursoController;
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Controller('curso')
+export class CursoController {
+  constructor(private readonly service: CursoService) { }
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [CursoController],
-      providers: [CursoService],
-    }).compile();
+  @Post()
+  @Roles('ADMIN') // Solo el ADMIN puede crear cursos
+  create(@Body() dto: CreateCursoDto) {
+    return this.service.create(dto);
+  }
 
-    controller = module.get<CursoController>(CursoController);
-  });
+  @Get()
+  @Roles('ADMIN', 'TRABAJADOR') // Ambos roles pueden ver
+  findAll() {
+    return this.service.findAll();
+  }
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
-});
+  @Get(':id')
+  @Roles('ADMIN', 'TRABAJADOR') // Ambos roles pueden ver detalles
+  findOne(@Param('id') id: string) {
+    return this.service.findOne(+id);
+  }
+
+  @Patch(':id')
+@Roles('ADMIN')
+update(@Param('id') id: string, @Body() dto: UpdateCursoDto) {
+  console.log('📌 PATCH /curso/:id =>', id, dto);
+  return this.service.update(+id, dto);
+}
+
+@Delete(':id')
+@Roles('ADMIN')
+remove(@Param('id') id: string) {
+  console.log('🗑️ DELETE /curso/:id =>', id);
+  return this.service.remove(+id);
+}
+
+
+}

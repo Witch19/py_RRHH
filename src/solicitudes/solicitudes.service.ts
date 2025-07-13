@@ -1,57 +1,47 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { Solicitud } from './entities/solicitude.entity';
 import { CreateSolicitudDto } from './dto/create-solicitude.dto';
 
 @Injectable()
 export class SolicitudesService {
+  trabajadorRepo: any;
   constructor(
-    @InjectModel(Solicitud.name)
-    private readonly solicitudModel: Model<Solicitud>,
-  ) {}
+    @InjectRepository(Solicitud)
+    private solicitudRepo: Repository<Solicitud>,
+  ) { }
 
-  /**
-   * Crea una nueva solicitud.
-   * Si recibes el usuario autenticado desde el controlador,
-   * puedes añadirlo como `creadoPor`.
-   */
-  async create(createSolicitudDto: CreateSolicitudDto, user?: any) {
-    const nuevaSolicitud = new this.solicitudModel({
+  async create(createSolicitudDto: CreateSolicitudDto, user: any) {
+    const trabajador = await this.trabajadorRepo.findOne({ where: { email: user.email } });
+    if (!trabajador) throw new Error('Trabajador no encontrado');
+
+    const solicitud = this.solicitudRepo.create({
       ...createSolicitudDto,
-      creadoPor: user?._id ?? null, // opcional
+      trabajador,
     });
 
-    return nuevaSolicitud.save();
+    return this.solicitudRepo.save(solicitud);
   }
 
-  /**
-   * Devuelve todas las solicitudes, populando la referencia a trabajador.
-   */
-  async findAll() {
-    return this.solicitudModel.find().populate('trabajador').exec();
+
+  findAll() {
+    return this.solicitudRepo.find({ relations: ['trabajador'] });
   }
 
-  /**
-   * Devuelve una solicitud por su _id.
-   */
-  async findOne(id: string) {
-    return this.solicitudModel.findById(id).populate('trabajador').exec();
+  findOne(id: number) {
+    return this.solicitudRepo.findOne({
+      where: { id },
+      relations: ['trabajador'],
+    });
   }
 
-  /**
-   * Actualiza una solicitud y devuelve el documento actualizado.
-   */
-  async update(id: string, updateData: Partial<CreateSolicitudDto>) {
-    return this.solicitudModel
-      .findByIdAndUpdate(id, updateData, { new: true })
-      .exec();
+  async update(id: number, updateData: Partial<CreateSolicitudDto>) {
+    await this.solicitudRepo.update(id, updateData);
+    return this.findOne(id);
   }
 
-  /**
-   * Elimina una solicitud por su _id.
-   */
-  async remove(id: string) {
-    return this.solicitudModel.findByIdAndDelete(id).exec();
+  remove(id: number) {
+    return this.solicitudRepo.delete(id);
   }
 }

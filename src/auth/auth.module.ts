@@ -1,33 +1,44 @@
+// src/auth/auth.module.ts
 import { Module } from '@nestjs/common';
-import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
 import { MongooseModule } from '@nestjs/mongoose';
-import { APP_GUARD } from '@nestjs/core';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
-import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
-import { User, UserSchema } from './schemas/user.schema';
+import { JwtAuthGuard } from './jwt.guard';
 import { RolesGuard } from '../roles/roles.guard';
+
+import { User, UserSchema } from './schemas/user.schema';
 
 @Module({
   imports: [
+    /* ConfigModule ya suele estar global en AppModule; 
+       lo importamos igual para que registerAsync tenga acceso */
+    ConfigModule,
+
+    /* Colección User en MongoDB */
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
-    PassportModule.register({ defaultStrategy: 'jwt' }),
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'secreto_super_seguro',
-      signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || '3600s' },
+
+    /* Passport con estrategia por defecto 'jwt' */
+    PassportModule.register({ defaultStrategy: 'jwt', session: false }),
+
+    /* JwtModule con la clave y expiración leídas desde .env */
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        secret: config.get<string>('JWT_SECRET'),           // ← .env
+        signOptions: {                                      // ← .env o fallback
+          expiresIn: config.get<string>('JWT_EXPIRES_IN', '1d'),
+        },
+      }),
     }),
   ],
-  providers: [
-    AuthService,
-    JwtStrategy,
-    {
-      provide: APP_GUARD,
-      useClass: RolesGuard,
-    },
-  ],
   controllers: [AuthController],
-  exports: [AuthService],
+  providers: [AuthService, JwtStrategy, JwtAuthGuard, RolesGuard],
+  exports: [JwtModule, PassportModule, JwtAuthGuard],
 })
 export class AuthModule {}

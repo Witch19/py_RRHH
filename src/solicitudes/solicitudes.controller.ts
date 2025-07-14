@@ -1,3 +1,4 @@
+// src/solicitudes/solicitudes.controller.ts
 import {
   Controller,
   Get,
@@ -7,51 +8,52 @@ import {
   Put,
   Delete,
   UseGuards,
-  ParseIntPipe,
-  Request,
+  Req,
 } from '@nestjs/common';
 import { SolicitudesService } from './solicitudes.service';
 import { CreateSolicitudDto } from './dto/create-solicitude.dto';
+import { UpdateEstadoDto } from './dto/update-estado.dto';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 import { Roles } from '../roles/roles.decorator';
 import { RolesGuard } from '../roles/roles.guard';
-import { Role } from '../enums/role.enum';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('solicitudes')
 export class SolicitudesController {
-  constructor(private readonly solicitudesService: SolicitudesService) {}
+  constructor(private readonly service: SolicitudesService) { }
 
+  /** Crear nueva solicitud (usuario autenticado) */
   @Post()
-  @Roles('ADMIN', 'TRABAJADOR')
-  create(@Body() dto: CreateSolicitudDto, @Request() req) {
-    return this.solicitudesService.create(dto, req.user);
+  async create(@Body() dto: CreateSolicitudDto, @Req() req) {
+    console.log('🧪 req.user:', req.user); // ← esto es clave
+    return this.service.create(dto, req.user);
   }
 
+
+  /** Ver todas las solicitudes (solo ADMIN) */
   @Get()
-  @Roles('ADMIN', 'TRABAJADOR')
-  findAll() {
-    return this.solicitudesService.findAll();
-  }
-
-  @Get(':id')
-  @Roles('ADMIN', 'TRABAJADOR')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.solicitudesService.findOne(id);
-  }
-
-  @Put(':id')
   @Roles('ADMIN')
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateData: Partial<CreateSolicitudDto>,
-  ) {
-    return this.solicitudesService.update(id, updateData);
+  findAll() {
+    return this.service.findAll();
   }
 
+  /** Ver solicitudes propias */
+  @Get('mias')
+  findMine(@Req() req) {
+    return this.service.findByUser(req.user.trabajadorId);
+  }
+
+  /** Cambiar estado (solo ADMIN) */
+  @Put(':id/estado')
+  @Roles('ADMIN')
+  updateEstado(@Param('id') id: string, @Body() dto: UpdateEstadoDto) {
+    return this.service.updateEstado(id, dto);
+  }
+
+  /** Eliminar solicitud (solo ADMIN) */
   @Delete(':id')
   @Roles('ADMIN')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.solicitudesService.remove(id);
+  remove(@Param('id') id: string) {
+    return this.service.remove(id);
   }
 }

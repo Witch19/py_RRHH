@@ -29,7 +29,7 @@ export class AuthController {
 
   
 
- @Public()
+@Public()
 @Post('login')
 async login(@Body() body: { email: string; password: string }) {
   const { email, password } = body;
@@ -37,16 +37,13 @@ async login(@Body() body: { email: string; password: string }) {
     throw new UnauthorizedException('Email y contraseña son obligatorios');
   }
 
-  const user = await this.authService.validateUser(email, password);
+  let user = await this.authService.validateUser(email, password);
   if (!user) throw new UnauthorizedException('Credenciales inválidas');
 
-  // ✅ Buscar trabajador relacionado por email
-  const trabajador = await this.authService.getTrabajadorPorEmail(user.email);
-  const trabajadorId = trabajador?.id ?? null;
+  // ⬅️ ACTUALIZA automáticamente trabajadorId si no lo tiene
+  user = await this.authService.asegurarTrabajadorId(user);
 
-  // ✅ Generar token con trabajadorId
-  const token = this.authService.generateJwt(user as any, trabajadorId);
-
+  const token = this.authService.generateJwt(user);
   const userData = (user as any).toObject?.() ?? user;
   const { password: _, ...userWithoutPassword } = userData;
 

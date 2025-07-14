@@ -6,9 +6,7 @@ import {
   ManyToOne,
   ManyToMany,
   JoinColumn,
-  OneToMany,
 } from 'typeorm';
-import { Solicitud } from '../../solicitudes/entities/solicitude.entity';
 import { TipoTrabajo } from '../../tipo-trabajo/entities/tipo-trabajo.entity';
 import { Curso } from '../../curso/entities/curso.entity';
 
@@ -25,9 +23,6 @@ export class Trabajador {
 
   @Column({ unique: true })
   email: string;
-
-  @Column()
-  password: string;
 
   @Column()
   role: string; // 'ADMIN' o 'TRABAJADOR'
@@ -50,9 +45,5 @@ export class Trabajador {
 
   @ManyToMany(() => Curso, (curso) => curso.trabajadores)
   cursos: Curso[];
-
-
-  @OneToMany(() => Solicitud, (solicitud) => solicitud.trabajador)
-  solicitudes: Solicitud[];
 
 }

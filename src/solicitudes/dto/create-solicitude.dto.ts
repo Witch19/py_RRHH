@@ -1,12 +1,15 @@
-import { IsNotEmpty, IsDateString, IsEnum } from 'class-validator';
-import { EstadoSolicitud } from '../entities/solicitude.entity';
+// src/solicitudes/dto/create-solicitud.dto.ts
+import { IsEnum, IsNotEmpty, IsOptional, IsString, IsDateString } from 'class-validator';
+import { SolicitudEstado } from '../constants/solicitudes-estado.enum';
 
 export class CreateSolicitudDto {
+  @IsString()
   @IsNotEmpty()
   tipo: string;
 
-  @IsNotEmpty()
-  descripcion: string;
+  @IsString()
+  @IsOptional()
+  descripcion?: string;
 
   @IsDateString()
   fechaInicio: string;
@@ -14,6 +17,7 @@ export class CreateSolicitudDto {
   @IsDateString()
   fechaFin: string;
 
-  @IsEnum(EstadoSolicitud)
-  estado?: EstadoSolicitud; // opcional, por defecto pendiente
+  @IsOptional()
+  @IsEnum(SolicitudEstado)
+  estado?: SolicitudEstado;
 }

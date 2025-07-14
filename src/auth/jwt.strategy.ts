@@ -13,6 +13,9 @@ import { User, UserDocument } from './schemas/user.schema';
 export interface JwtPayload {
   sub: string;
   email: string;
+  username: string;
+  role: string;
+  trabajadorId?: number;
 }
 
 @Injectable()
@@ -27,7 +30,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       secretOrKey: configService.get<string>('JWT_SECRET'),
     });
 
-    // ✅ Imprimir el valor del secreto para verificar
     console.log('🛡️ JWT_SECRET usado en estrategia:', configService.get<string>('JWT_SECRET'));
   }
 
@@ -41,6 +43,12 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       throw new UnauthorizedException('Token inválido o usuario no encontrado');
     }
 
-    return { ...user, sub: payload.sub };
+    // ✅ Combina datos del token con los del usuario
+    return {
+      ...user,
+      sub: payload.sub,
+      trabajadorId: payload.trabajadorId, // ✅ no pongas ?? null
+    };
+
   }
 }

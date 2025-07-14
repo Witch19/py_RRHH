@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class RegisterDto {
 
@@ -15,4 +15,18 @@ export class RegisterDto {
   @IsString()
   @IsNotEmpty()
   role: string; // Puedes ponerlo opcional si quieres con @IsOptional()
+
+  // ✅ Nuevos campos para crear el trabajador si no existe
+  @IsOptional()
+  @IsString()
+  telefono?: string;
+
+  @IsOptional()
+  @IsString()
+  direccion?: string;
+
+  @IsOptional()
+  @IsNumber()
+  tipoTrabajoId?: number;
+
 }

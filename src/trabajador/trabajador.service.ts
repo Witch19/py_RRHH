@@ -38,7 +38,6 @@ export class TrabajadorService {
       nombre: dto.nombre,
       apellido: dto.apellido,
       email: dto.email,
-      password: hashedPassword,
       role: (dto.role ?? 'TRABAJADOR').toUpperCase(),
       telefono: dto.telefono,
       direccion: dto.direccion,
@@ -91,9 +90,6 @@ export class TrabajadorService {
     }
 
     /* Si cambia la contraseña, la re‑hasheamos */
-    if (dto.password) {
-      trabajador.password = await bcrypt.hash(dto.password, 10);
-    }
 
     const { password, tipoTrabajoId, ...rest } = dto;
     Object.assign(trabajador, rest);

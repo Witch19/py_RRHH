@@ -1,50 +1,91 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Solicitud } from './entities/solicitude.entity';
+// src/solicitudes/solicitudes.service.ts
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+
+import {
+  Solicitud,
+  SolicitudDocument,
+} from './schemas/solicitudes.shema';
 import { CreateSolicitudDto } from './dto/create-solicitude.dto';
-import { Trabajador } from '../trabajador/entities/trabajador.entity';
+import { UpdateEstadoDto } from './dto/update-estado.dto';
+import { SolicitudEstado } from './constants/solicitudes-estado.enum';
 
 @Injectable()
 export class SolicitudesService {
   constructor(
-    @InjectRepository(Solicitud)
-    private readonly solicitudRepo: Repository<Solicitud>,
-    @InjectRepository(Trabajador)
-    private readonly trabajadorRepo: Repository<Trabajador>,
+    @InjectModel(Solicitud.name)
+    private readonly solicitudModel: Model<SolicitudDocument>,
   ) {}
 
+  /** Crear solicitud nueva (estado inicia como PENDIENTE) */
   async create(dto: CreateSolicitudDto, user: any) {
-    const trabajador = await this.trabajadorRepo.findOne({
-      where: { id: user.trabajadorId }, // ✅ Usa trabajadorId en vez de sub
+    const solicitud = new this.solicitudModel({
+      tipo: dto.tipo,
+      descripcion: dto.descripcion,
+      fechaInicio: new Date(dto.fechaInicio),
+      fechaFin: new Date(dto.fechaFin),
+      estado: SolicitudEstado.PENDIENTE,
+      trabajadorId: user.trabajadorId,
     });
 
-    if (!trabajador) {
-      throw new NotFoundException('Trabajador no encontrado');
+    const saved = await solicitud.save();
+    return {
+      ...saved.toObject(),
+      id: saved._id,
+    };
+  }
+
+  /** Obtener todas las solicitudes (solo ADMIN) */
+  async findAll() {
+    const docs = await this.solicitudModel.find().sort({ createdAt: -1 }).lean();
+    return docs.map((doc) => ({
+      ...doc,
+      id: doc._id,
+    }));
+  }
+
+  /** Obtener solicitudes del usuario autenticado */
+  async findByUser(userId: number) {
+    const docs = await this.solicitudModel.find({ trabajadorId: userId }).sort({ createdAt: -1 }).lean();
+    return docs.map((doc) => ({
+      ...doc,
+      id: doc._id,
+    }));
+  }
+
+  /** Cambiar el estado de una solicitud */
+  async updateEstado(id: string, dto: UpdateEstadoDto) {
+    if (!Object.values(SolicitudEstado).includes(dto.estado)) {
+      throw new BadRequestException(`Estado inválido: ${dto.estado}`);
     }
 
-    const solicitud = this.solicitudRepo.create({
-      ...dto,
-      trabajador,
-    });
+    const updated = await this.solicitudModel.findByIdAndUpdate(
+      id,
+      { estado: dto.estado },
+      { new: true },
+    ).lean();
 
-    return this.solicitudRepo.save(solicitud);
+    if (!updated) {
+      throw new NotFoundException('Solicitud no encontrada');
+    }
+
+    return {
+      ...updated,
+      id: updated._id,
+    };
   }
 
-  findAll() {
-    return this.solicitudRepo.find({ relations: ['trabajador'] });
-  }
-
-  findOne(id: number) {
-    return this.solicitudRepo.findOne({ where: { id }, relations: ['trabajador'] });
-  }
-
-  async update(id: number, updateData: Partial<CreateSolicitudDto>) {
-    await this.solicitudRepo.update(id, updateData);
-    return this.findOne(id);
-  }
-
-  remove(id: number) {
-    return this.solicitudRepo.delete(id);
+  /** Eliminar solicitud */
+  async remove(id: string) {
+    const result = await this.solicitudModel.deleteOne({ _id: id });
+    if (result.deletedCount === 0) {
+      throw new NotFoundException('Solicitud no encontrada');
+    }
+    return { message: 'Solicitud eliminada correctamente' };
   }
 }

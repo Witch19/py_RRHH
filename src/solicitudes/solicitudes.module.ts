@@ -1,13 +1,18 @@
+// src/solicitudes/solicitudes.module.ts
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { MongooseModule } from '@nestjs/mongoose';
 import { SolicitudesController } from './solicitudes.controller';
 import { SolicitudesService } from './solicitudes.service';
-import { Solicitud } from './entities/solicitude.entity';
-import { Trabajador } from 'src/trabajador/entities/trabajador.entity';
+import { Solicitud, SolicitudSchema } from './schemas/solicitudes.shema';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Solicitud, Trabajador])],
+  imports: [
+    MongooseModule.forFeature([
+      { name: Solicitud.name, schema: SolicitudSchema },
+    ]),
+  ],
   controllers: [SolicitudesController],
   providers: [SolicitudesService],
+  exports: [SolicitudesService],
 })
 export class SolicitudesModule {}

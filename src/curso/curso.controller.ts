@@ -22,7 +22,7 @@ import { Roles } from '../roles/roles.decorator';
 export class CursoController {
   constructor(private readonly service: CursoService) {}
 
-  @Roles('admin')
+  @Roles('ADMIN')
   @Post()
   create(@Body() dto: CreateCursoDto) {
     return this.service.create(dto);
@@ -38,19 +38,19 @@ export class CursoController {
     return this.service.findOne(+id);
   }
 
-  @Roles('admin')
+  @Roles('ADMIN')
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateCursoDto) {
     return this.service.update(+id, dto);
   }
 
-  @Roles('admin')
+  @Roles('ADMIN')
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.service.remove(+id);
   }
 
-  @Roles('trabajador', 'admin')
+  @Roles('TRABAJADOR', 'ADMIN')
   @Post(':id/inscribir')
   inscribir(@Param('id') id: string, @Req() req) {
     return this.service.inscribir(+id, req.user.sub);

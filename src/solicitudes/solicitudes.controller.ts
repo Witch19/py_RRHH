@@ -44,11 +44,15 @@ export class SolicitudesController {
   }
 
   /** Cambiar estado (solo ADMIN) */
-  @Put(':id/estado')
+  @Put(':id')
   @Roles('ADMIN')
-  updateEstado(@Param('id') id: string, @Body() dto: UpdateEstadoDto) {
+  updateEstado(
+    @Param('id') id: string,
+    @Body() dto: UpdateEstadoDto,
+  ) {
     return this.service.updateEstado(id, dto);
   }
+
 
   /** Eliminar solicitud (solo ADMIN) */
   @Delete(':id')

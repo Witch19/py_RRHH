@@ -1,14 +1,16 @@
+// src/trabajador/entities/trabajador.entity.ts
 import {
   Entity,
-  Column,
   PrimaryGeneratedColumn,
+  Column,
   ManyToOne,
-  OneToMany,
+  ManyToMany,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
-import { TipoTrabajo } from 'src/tipo-trabajo/entities/tipo-trabajo.entity';
-import { CursosTrabajadores } from 'src/cursos-trabajadores/entities/cursos-trabajadores.entity';
-import { Solicitud } from 'src/solicitudes/entities/solicitude.entity';
+import { Solicitud } from '../../solicitudes/entities/solicitude.entity';
+import { TipoTrabajo } from '../../tipo-trabajo/entities/tipo-trabajo.entity';
+import { Curso } from '../../curso/entities/curso.entity';
 
 @Entity()
 export class Trabajador {
@@ -24,22 +26,33 @@ export class Trabajador {
   @Column({ unique: true })
   email: string;
 
-  @Column({ default: 'temporal123' })
+  @Column()
   password: string;
 
-  @Column({ nullable: true })
-  role: string;
-
-  @ManyToOne(() => TipoTrabajo, (tipoTrabajo) => tipoTrabajo.trabajadores)
-  @JoinColumn({ name: 'tipoTrabajoId' })
-  tipoTrabajo: TipoTrabajo;
+  @Column()
+  role: string; // 'ADMIN' o 'TRABAJADOR'
 
   @Column({ nullable: true })
-  tipoTrabajoId: number;
+  telefono?: string;
 
-  @OneToMany(() => CursosTrabajadores, (cursoTrabajador) => cursoTrabajador.trabajador)
-  cursos: CursosTrabajadores[];
+  @Column({ nullable: true })
+  direccion?: string;
+
+  @Column({ nullable: true })
+  cvUrl?: string;
+
+  @Column({ nullable: true })
+  area?: string;
+
+  @ManyToOne(() => TipoTrabajo, { eager: true, nullable: true })
+  @JoinColumn()
+  tipoTrabajo?: TipoTrabajo;
+
+  @ManyToMany(() => Curso, (curso) => curso.trabajadores)
+  cursos: Curso[];
+
 
   @OneToMany(() => Solicitud, (solicitud) => solicitud.trabajador)
   solicitudes: Solicitud[];
+
 }

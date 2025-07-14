@@ -1,22 +1,17 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { join } from 'path';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  app.enableCors({
-    origin: 'http://localhost:5173',
-    credentials: true,
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+    prefix: '/uploads',
   });
 
-  app.use((req, res, next) => {
-    console.log(`${req.method} ${req.url}`);
-    next();
-  });
+  app.enableCors({ origin: 'http://localhost:5174', credentials: true });
 
-  // ❌ Quita esta línea porque ya tienes guards globales configurados con APP_GUARD
-  // app.useGlobalGuards(app.get(JwtAuthGuard));
-
-  await app.listen(process.env.PORT || 3005);
+  await app.listen(3005);
 }
 bootstrap();

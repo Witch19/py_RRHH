@@ -1,4 +1,4 @@
-import { IsString, IsEmail, IsOptional, IsNumber } from 'class-validator';
+import { IsOptional, IsString, IsEmail } from 'class-validator';
 
 export class CreateTrabajadorDto {
   @IsString()
@@ -10,14 +10,26 @@ export class CreateTrabajadorDto {
   @IsEmail()
   email: string;
 
+  @IsOptional()
   @IsString()
-  password: string;  // Debe existir para el hash
+  password?: string;
 
   @IsOptional()
   @IsString()
-  role?: string;  // Opcional, puede venir o no
+  telefono?: string;
 
   @IsOptional()
-  @IsNumber()
+  @IsString()
+  direccion?: string;
+
+  @IsOptional()
+  @IsString()
+  cvUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  role?: string;
+
+  @IsOptional()
   tipoTrabajoId?: number;
 }

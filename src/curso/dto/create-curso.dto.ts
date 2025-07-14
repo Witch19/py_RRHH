@@ -1,9 +1,7 @@
-import { IsString } from 'class-validator';
-
+/* src/curso/dto/create-curso.dto.ts */
 export class CreateCursoDto {
-  @IsString()
   nombre: string;
-
-  @IsString()
-  descripcion: string;
+  descripcion?: string;
+  duracion?: string;
+  areas?: string[];
 }

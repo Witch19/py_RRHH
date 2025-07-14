@@ -1,3 +1,4 @@
+// src/auth/auth.module.ts
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
@@ -9,7 +10,7 @@ import { JwtStrategy } from './jwt.strategy';
 import { RolesGuard } from '../roles/roles.guard';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Trabajador } from '../trabajador/entities/trabajador.entity'; // 👈 IMPORTA LA ENTIDAD
+import { Trabajador } from '../trabajador/entities/trabajador.entity';
 
 @Module({
   imports: [
@@ -20,11 +21,11 @@ import { Trabajador } from '../trabajador/entities/trabajador.entity'; // 👈 I
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         secret: config.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '2h' },
+        signOptions: { expiresIn: config.get<string>('JWT_EXPIRES_IN') || '2h' },
       }),
     }),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
-    TypeOrmModule.forFeature([Trabajador]), // ✅ AÑADE EL REPOSITORIO AQUI
+    TypeOrmModule.forFeature([Trabajador]),
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, RolesGuard],

@@ -1,5 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { CursosTrabajadores } from '../../cursos-trabajadores/entities/cursos-trabajadores.entity';
+// src/curso/entities/curso.entity.ts
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
+import { Trabajador } from '../../trabajador/entities/trabajador.entity';
 
 @Entity()
 export class Curso {
@@ -9,9 +16,17 @@ export class Curso {
   @Column()
   nombre: string;
 
-  @Column()
+  @Column({ nullable: true })
   descripcion: string;
 
-  @OneToMany(() => CursosTrabajadores, ct => ct.curso)
-  cursosTrabajadores: CursosTrabajadores[];
+  @Column({ nullable: true })
+  duracion: string;
+
+  @Column('text', { array: true, default: [] })
+  areas: string[];
+
+  @ManyToMany(() => Trabajador, (trab) => trab.cursos, { eager: false })
+  @JoinTable()
+  trabajadores: Trabajador[];
+  cursosTrabajadores: any;
 }

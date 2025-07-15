@@ -30,6 +30,7 @@ import { CursoModule } from './curso/curso.module';
         database: config.get('DB_NAME') || 'rrhh',
         autoLoadEntities: true,
         synchronize: true, // 🛈 en producción cámbialo a false
+        ssl: { rejectUnauthorized: false },
       }),
       inject: [ConfigService],
     }),

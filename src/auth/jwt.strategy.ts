@@ -30,25 +30,37 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       secretOrKey: configService.get<string>('JWT_SECRET'),
     });
 
-    console.log('🛡️ JWT_SECRET usado en estrategia:', configService.get<string>('JWT_SECRET'));
+    console.log(
+      '🛡️ JWT_SECRET usado en estrategia:',
+      configService.get<string>('JWT_SECRET'),
+    );
   }
 
   async validate(payload: JwtPayload) {
+    // Buscamos al usuario en la base Mongo y quitamos password
     const user = await this.userModel
       .findById(payload.sub)
       .select('-password')
       .lean();
 
     if (!user) {
-      throw new UnauthorizedException('Token inválido o usuario no encontrado');
+      throw new UnauthorizedException(
+        'Token inválido o usuario no encontrado',
+      );
     }
 
-    // ✅ Combina datos del token con los del usuario
+    /* ----------------------------------------------------------------
+     * El objeto retornado quedará como req.user en los Guards y decoradores.
+     * Aseguramos que incluya siempre:
+     *   • sub  (id de Mongo)
+     *   • email, username, role (por si los necesitas en Guards/Roles)
+     *   • trabajadorId          (lo tomamos del payload o de la BD)
+    ---------------------------------------------------------------- */
     return {
-      ...user,
-      sub: payload.sub,
-      trabajadorId: payload.trabajadorId, // ✅ no pongas ?? null
-    };
+  ...user,
+  sub: payload.sub,
+  trabajadorId: payload.trabajadorId ?? user.trabajadorId ?? null,
+};
 
   }
 }

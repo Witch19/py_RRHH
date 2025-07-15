@@ -45,5 +45,4 @@ export class Trabajador {
 
   @ManyToMany(() => Curso, (curso) => curso.trabajadores)
   cursos: Curso[];
-
 }

@@ -1,3 +1,4 @@
+// src/solicitudes/solicitudes.service.ts
 import {
   BadRequestException,
   Injectable,
@@ -20,6 +21,9 @@ import { Trabajador } from '../trabajador/entities/trabajador.entity';
 
 @Injectable()
 export class SolicitudesService {
+  /*removeIfOwner(id: string, trabajadorId: number) {
+    throw new Error('Method not implemented.');
+  }*/
   constructor(
     @InjectModel(Solicitud.name)
     private readonly solicitudModel: Model<SolicitudDocument>,
@@ -32,18 +36,24 @@ export class SolicitudesService {
    * 1. Crear solicitud nueva
   ---------------------------------------------------------------- */
   async create(dto: CreateSolicitudDto, user: any) {
-    const solicitud = new this.solicitudModel({
-      tipo: dto.tipo,
-      descripcion: dto.descripcion,
-      fechaInicio: new Date(dto.fechaInicio),
-      fechaFin: new Date(dto.fechaFin),
-      estado: SolicitudEstado.PENDIENTE,
-      trabajadorId: user.trabajadorId,
-    });
+  const estadoFinal =
+    user.role === 'ADMIN' && dto.estado
+      ? dto.estado
+      : SolicitudEstado.PENDIENTE;
 
-    const saved = await solicitud.save();
-    return this.mapearSolicitud(saved.toObject());
-  }
+  const solicitud = new this.solicitudModel({
+    tipo: dto.tipo,
+    descripcion: dto.descripcion,
+    fechaInicio: dto.fechaInicio ? new Date(dto.fechaInicio) : undefined,
+    fechaFin: dto.fechaFin ? new Date(dto.fechaFin) : undefined,
+    estado: estadoFinal,
+    trabajadorId: user.trabajadorId,
+  });
+
+  const saved = await solicitud.save();
+  return this.mapearSolicitud(saved.toObject());
+}
+
 
   /* ----------------------------------------------------------------
    * 2. Obtener TODAS las solicitudes  (ADMIN)
@@ -76,7 +86,7 @@ export class SolicitudesService {
     if (!isValidObjectId(id))
       throw new BadRequestException('ID de solicitud inválido');
 
-    if (!Object.values(SolicitudEstado).includes(dto.estado))
+    if (!Object.values(SolicitudEstado).includes(dto.estado as any))
       throw new BadRequestException(`Estado inválido: ${dto.estado}`);
 
     const updated = await this.solicitudModel
@@ -113,8 +123,14 @@ export class SolicitudesService {
     });
 
     return {
-      ...doc,
-      id: doc._id,
+      id: doc._id.toString(),
+      tipo: doc.tipo,
+      descripcion: doc.descripcion,
+      fechaInicio: doc.fechaInicio,
+      fechaFin: doc.fechaFin,
+      estado: doc.estado,
+      createdAt: doc.createdAt,
+      updatedAt: doc.updatedAt,
       trabajador: trabajador
         ? {
             id: trabajador.id,
@@ -128,4 +144,25 @@ export class SolicitudesService {
         : null,
     };
   }
+
+  /* ----------------------------------------------------------------
+ * 5.b Eliminar si el propietario es el que llama y la solicitud está pendiente
+---------------------------------------------------------------- */
+async removeIfOwner(id: string, trabajadorId: number) {
+  if (!isValidObjectId(id))
+    throw new BadRequestException('ID de solicitud inválido');
+
+  const solicitud = await this.solicitudModel.findById(id);
+  if (!solicitud) throw new NotFoundException('Solicitud no encontrada');
+
+  if (solicitud.trabajadorId !== trabajadorId)
+    throw new BadRequestException('No puedes cancelar esta solicitud');
+
+  if (solicitud.estado !== SolicitudEstado.PENDIENTE)
+    throw new BadRequestException('Solo se puede cancelar una solicitud pendiente');
+
+  await solicitud.deleteOne();
+  return { message: 'Solicitud cancelada correctamente' };
+}
+
 }

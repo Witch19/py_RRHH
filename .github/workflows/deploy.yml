@@ -1,4 +1,4 @@
-name: 🚀 Deploy NestJS Bcd ..log Backend API to VPS
+name: 🚀 Deploy NestJS RRHH Backend API to VPS
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
         username: ${{ secrets.VPS_USER }}
         key: ${{ secrets.VPS_KEY }}
         source: "."
-        target: "/root/joselyn_saavedra/py_RRHH"
+        target: "/root/saavedra_joselyn/nestjs-rrhh-backend"
 
     - name: Run deploy commands on VPS
       uses: appleboy/ssh-action@v1.0.3
@@ -28,8 +28,20 @@ jobs:
         username: ${{ secrets.VPS_USER }}
         key: ${{ secrets.VPS_KEY }}
         script: |
-          cd /root/nestjs-blog-backend
-          echo "$${{ secrets.ENV_FILE }}" > .env
+          cd /root/saavedra_joselyn/nestjs-rrhh-backend
+          
+          # Matar el proceso que está usando el puerto 3005
+          echo "Matar proceso en el puerto 3005..."
+          sudo lsof -t -i:3005 | xargs sudo kill -9  # Mata el proceso que usa el puerto 3005
+          
+          # Asegúrate de que el archivo .env se copie correctamente
+          echo -e "${{ secrets.ENV_FILE }}" > .env
+          
+          # Instalar dependencias, construir y reiniciar la aplicación
           npm install
           npm run build
-          pm2 restart py_RRHH-api || pm2 start dist/main.js --name py_RRHH-api
+          
+          # Reiniciar PM2 con el nuevo código
+          pm2 stop nestjs-rrhh-backend-api || true  # Detener el proceso si está en ejecución
+          pm2 delete nestjs-rrhh-backend-api || true  # Eliminar el proceso si ya está activo
+          pm2 start dist/main.js --name nestjs-rrhh-backend-api  # Iniciar el proceso desde el archivo compilado

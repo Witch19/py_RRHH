@@ -5,6 +5,6 @@ export enum tipoTrabajador {
   RRHH = 'RECURSOS HUMANOS',
   MARKETING = 'MARKETING',
   OPERARIO = 'OPERARIO',
-  OTROS = 'OTROS',
   TI = 'TI',
+  OTROS = 'OTROS',
 }

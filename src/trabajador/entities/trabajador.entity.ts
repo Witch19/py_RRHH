@@ -40,11 +40,11 @@ export class Trabajador {
   @Column({ nullable: true })
   area?: string;
 
-  // ⚠️ ENUM adicional para tipo de cargo
+  // ✅ ENUM que representa tipo/cargo del trabajador (ej: INGENIERIA, OPERARIO, etc.)
   @Column({ type: 'enum', enum: tipoTrabajador, default: tipoTrabajador.OPERARIO })
   tipoTrabajador: tipoTrabajador;
 
-  // ✅ Relación con TipoTrabajo (área)
+  // ✅ Relación con tabla TipoTrabajo (ej: departamento personalizado)
   @ManyToOne(() => TipoTrabajo, tipo => tipo.trabajadores, { eager: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'tipoTrabajoId' })
   tipoTrabajo: TipoTrabajo;

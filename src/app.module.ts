@@ -35,12 +35,12 @@ import { CursoModule } from './curso/curso.module';
       inject: [ConfigService],
     }),
 
-    /* 🍃 Mongoose – MongoDB */
+    /* Mongoose – MongoDB */
     MongooseModule.forRoot(
       process.env.MONGO_URI || 'mongodb://localhost:27017/rrhh',
     ),
 
-    /* 🚀 Módulos de la aplicación */
+    /* Módulos de la aplicación */
     AuthModule,
     TipoTrabajoModule,
     CursosTrabajadoresModule,

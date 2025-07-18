@@ -2,15 +2,16 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { TipoTrabajoService } from './tipo-trabajo.service';
 import { CreateTipoTrabajoDto } from './dto/create-tipo-trabajo.dto';
 import { UpdateTipoTrabajoDto } from './dto/update-tipo-trabajo.dto';
+import { tipoTrabajador } from 'src/enums/tipoTrabajador.enum';
 
 @Controller('tipo-trabajo')
 export class TipoTrabajoController {
-  constructor(private readonly tipoTrabajoService: TipoTrabajoService) {}
+  constructor(private readonly tipoTrabajoService: TipoTrabajoService) { }
 
   @Post()
-create(@Body() dto: CreateTipoTrabajoDto) {
-  return this.tipoTrabajoService.create(dto);
-}
+  create(@Body() dto: CreateTipoTrabajoDto) {
+    return this.tipoTrabajoService.create(dto);
+  }
 
 
   @Get()
@@ -21,6 +22,14 @@ create(@Body() dto: CreateTipoTrabajoDto) {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.tipoTrabajoService.findOne(+id);
+  }
+
+  @Get('enum')
+  getTipoTrabajoEnum() {
+    return Object.entries(tipoTrabajador).map(([key, value]) => ({
+      key,
+      value,
+    }));
   }
 
   @Patch(':id')

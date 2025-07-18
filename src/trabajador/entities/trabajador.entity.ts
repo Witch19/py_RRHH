@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { TipoTrabajo } from '../../tipo-trabajo/entities/tipo-trabajo.entity';
 import { Curso } from '../../curso/entities/curso.entity';
+import { tipoTrabajador } from 'src/enums/tipoTrabajador.enum';
 
 @Entity()
 export class Trabajador {
@@ -36,12 +37,11 @@ export class Trabajador {
   @Column({ nullable: true })
   cvUrl?: string;
 
-  @Column({ nullable: true })
+  @Column({nullable: true })
   area?: string;
 
-  @ManyToOne(() => TipoTrabajo, { eager: true, nullable: true })
-  @JoinColumn()
-  tipoTrabajo?: TipoTrabajo;
+  @Column({ type: 'enum', enum: tipoTrabajador })
+  tipoTrabajo: tipoTrabajador;
 
   @ManyToMany(() => Curso, (curso) => curso.trabajadores)
   cursos: Curso[];

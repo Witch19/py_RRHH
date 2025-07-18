@@ -12,6 +12,7 @@ import { CursosTrabajadoresModule } from './cursos-trabajadores/cursos-trabajado
 import { SolicitudesModule } from './solicitudes/solicitudes.module';
 import { TrabajadorModule } from './trabajador/trabajador.module';
 import { CursoModule } from './curso/curso.module';
+import { AspiranteModule } from './aspirante/aspirante.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { CursoModule } from './curso/curso.module';
     SolicitudesModule,
     TrabajadorModule,
     CursoModule,
+    AspiranteModule,
   ],
   controllers: [AppController],
   providers: [AppService],

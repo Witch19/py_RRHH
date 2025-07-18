@@ -37,11 +37,17 @@ export class Trabajador {
   @Column({ nullable: true })
   cvUrl?: string;
 
-  @Column({nullable: true })
+  @Column({ nullable: true })
   area?: string;
 
-  @Column({ type: 'enum', enum: tipoTrabajador })
-  tipoTrabajo: tipoTrabajador;
+  // ⚠️ ENUM adicional para tipo de cargo
+  @Column({ type: 'enum', enum: tipoTrabajador, default: tipoTrabajador.OPERARIO })
+  tipoTrabajador: tipoTrabajador;
+
+  // ✅ Relación con TipoTrabajo (área)
+  @ManyToOne(() => TipoTrabajo, tipo => tipo.trabajadores, { eager: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'tipoTrabajoId' })
+  tipoTrabajo: TipoTrabajo;
 
   @ManyToMany(() => Curso, (curso) => curso.trabajadores)
   cursos: Curso[];

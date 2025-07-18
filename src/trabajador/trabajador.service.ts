@@ -44,6 +44,7 @@ export class TrabajadorService {
       cvUrl: dto.cvUrl,
       tipoTrabajo,
       area: tipoTrabajo.nombre,
+      tipoTrabajador: dto.tipoTrabajador, // ← Agregado el enum aquí
     });
 
     return await this.trabajadorRepository.save(trabajador);
@@ -52,7 +53,7 @@ export class TrabajadorService {
   /* ───────── Obtener ───────── */
   findAll() {
     return this.trabajadorRepository.find({
-      relations: ['tipoTrabajo', 'cursos'], // incluye cursos inscritos
+      relations: ['tipoTrabajo', 'cursos'],
     });
   }
 
@@ -77,7 +78,6 @@ export class TrabajadorService {
       throw new NotFoundException('Trabajador no encontrado');
     }
 
-    /* Si cambia el tipoTrabajoId, actualizamos relación y área */
     if (dto.tipoTrabajoId) {
       const tipoTrabajo = await this.tipoTrabajoRepository.findOneBy({
         id: dto.tipoTrabajoId,
@@ -89,13 +89,15 @@ export class TrabajadorService {
       trabajador.area = tipoTrabajo.nombre;
     }
 
-    /* Si cambia la contraseña, la re‑hasheamos */
+    if (dto.tipoTrabajador) {
+      trabajador.tipoTrabajador = dto.tipoTrabajador;
+    }
 
-    const { password, tipoTrabajoId, ...rest } = dto;
+    const { password, tipoTrabajoId, tipoTrabajador, ...rest } = dto;
     Object.assign(trabajador, rest);
 
     await this.trabajadorRepository.save(trabajador);
-    return this.findOne(id); // Devuelve el trabajador actualizado con relaciones
+    return this.findOne(id);
   }
 
   /* ───────── Eliminar ───────── */

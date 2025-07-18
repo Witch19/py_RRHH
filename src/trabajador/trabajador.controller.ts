@@ -43,7 +43,9 @@ export class TrabajadorController {
 
   /* ─────────────── CREAR ─────────────── */
   @Post()
-  @UseInterceptors(FileInterceptor('file', { storage: storageCfg, fileFilter: pdfFilter }))
+  @UseInterceptors(
+    FileInterceptor('file', { storage: storageCfg, fileFilter: pdfFilter }),
+  )
   create(
     @Body() dto: CreateTrabajadorDto,
     @UploadedFile() file?: Express.Multer.File,
@@ -66,13 +68,17 @@ export class TrabajadorController {
 
   /* ─────────────── ACTUALIZAR ─────────────── */
   @Patch(':id')
-  @UseInterceptors(FileInterceptor('file', { storage: storageCfg, fileFilter: pdfFilter }))
+  @UseInterceptors(
+    FileInterceptor('file', { storage: storageCfg, fileFilter: pdfFilter }),
+  )
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateTrabajadorDto,
     @UploadedFile() file?: Express.Multer.File,
   ) {
     const extra = file ? { cvUrl: `/uploads/cv/${file.filename}` } : {};
+
+    // Aseguramos tipo numérico
     if ((dto as any).tipoTrabajoId)
       (dto as any).tipoTrabajoId = Number((dto as any).tipoTrabajoId);
 
@@ -90,13 +96,15 @@ export class TrabajadorController {
   async getCv(@Param('id', ParseIntPipe) id: number, @Res() res: Response) {
     const trabajador = await this.trabajadorService.findOne(id);
 
-    if (!trabajador || !trabajador.cvUrl) {
+    if (!trabajador?.cvUrl) {
       return res.status(404).json({ message: 'CV no encontrado' });
     }
 
     const cvPath = path.join(__dirname, '..', '..', trabajador.cvUrl);
     if (!fs.existsSync(cvPath)) {
-      return res.status(404).json({ message: 'Archivo no existe en el servidor' });
+      return res
+        .status(404)
+        .json({ message: 'Archivo no existe en el servidor' });
     }
 
     res.setHeader('Content-Type', 'application/pdf');

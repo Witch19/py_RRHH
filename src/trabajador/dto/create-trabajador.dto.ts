@@ -1,4 +1,6 @@
-import { IsOptional, IsString, IsEmail } from 'class-validator';
+// src/trabajador/dto/create-trabajador.dto.ts
+import { IsOptional, IsString, IsEmail, IsEnum, IsNumber } from 'class-validator';
+import { tipoTrabajador } from 'src/enums/tipoTrabajador.enum';
 
 export class CreateTrabajadorDto {
   @IsString()
@@ -30,6 +32,13 @@ export class CreateTrabajadorDto {
   @IsString()
   role?: string;
 
+  // Relación con TipoTrabajo
   @IsOptional()
+  @IsNumber()
   tipoTrabajoId?: number;
+
+  // Enum tipoTrabajador
+  @IsOptional()
+  @IsEnum(tipoTrabajador)
+  tipoTrabajador?: tipoTrabajador;
 }

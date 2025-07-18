@@ -1,6 +1,7 @@
-import { IsString, IsEmail, IsOptional, IsNumber } from 'class-validator';
+import { IsString, IsEmail, IsOptional, IsNumber, IsEnum } from 'class-validator';
 import { CreateTrabajadorDto } from './create-trabajador.dto';
 import { PartialType } from '@nestjs/mapped-types';
+import { tipoTrabajador } from 'src/enums/tipoTrabajador.enum';
 
 export class UpdateTrabajadorDto extends PartialType(CreateTrabajadorDto) {
   @IsOptional()
@@ -26,4 +27,8 @@ export class UpdateTrabajadorDto extends PartialType(CreateTrabajadorDto) {
   @IsOptional()
   @IsNumber()
   tipoTrabajoId?: number;
+
+  @IsOptional()
+  @IsEnum(tipoTrabajador)
+  tipoTrabajador?: tipoTrabajador; // ← agregado correctamente
 }

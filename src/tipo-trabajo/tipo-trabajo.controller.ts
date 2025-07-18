@@ -19,11 +19,7 @@ export class TipoTrabajoController {
     return this.tipoTrabajoService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.tipoTrabajoService.findOne(+id);
-  }
-
+  
   @Get('enum')
   getTipoTrabajoEnum() {
     return Object.entries(tipoTrabajador).map(([key, value]) => ({
@@ -31,7 +27,12 @@ export class TipoTrabajoController {
       value,
     }));
   }
-
+  
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.tipoTrabajoService.findOne(+id);
+  }
+  
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateTipoTrabajoDto: UpdateTipoTrabajoDto) {
     return this.tipoTrabajoService.update(+id, updateTipoTrabajoDto);

@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { Trabajador } from '../../trabajador/entities/trabajador.entity';
 
-@Entity('tipo_trabajo') // Puedes definir un nombre explícito si deseas
+@Entity('tipo_trabajo')
 export class TipoTrabajo {
   @PrimaryGeneratedColumn()
   id: number;
@@ -12,3 +12,4 @@ export class TipoTrabajo {
   @OneToMany(() => Trabajador, trabajador => trabajador.tipoTrabajo)
   trabajadores: Trabajador[];
 }
+

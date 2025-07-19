@@ -25,7 +25,7 @@ export class Trabajador {
   email: string;
 
   @Column()
-  role: string; // 'ADMIN' o 'TRABAJADOR'
+  role: string;
 
   @Column({ nullable: true })
   telefono?: string;
@@ -36,11 +36,9 @@ export class Trabajador {
   @Column({ nullable: true })
   cvUrl?: string;
 
-  // ✅ área textual, se copia desde tipoTrabajo.nombre
   @Column()
   tipo: string;
 
-  // ✅ ENUM que representa tipo/cargo del trabajador
   @Column({
     type: 'enum',
     enum: tipoTrabajador,
@@ -48,7 +46,9 @@ export class Trabajador {
   })
   tipoTrabajador: tipoTrabajador;
 
-  // ✅ Relación con tabla TipoTrabajo
+  @Column({ nullable: true }) // 👈 necesario para tener acceso directo al ID
+  tipoTrabajoId: number;
+
   @ManyToOne(() => TipoTrabajo, tipo => tipo.trabajadores, {
     eager: true,
     onDelete: 'SET NULL',

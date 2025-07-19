@@ -36,9 +36,6 @@ export class Trabajador {
   @Column({ nullable: true })
   cvUrl?: string;
 
-  @Column()
-  tipo: string;
-
   @Column({
     type: 'enum',
     enum: tipoTrabajador,
@@ -46,7 +43,7 @@ export class Trabajador {
   })
   tipoTrabajador: tipoTrabajador;
 
-  @Column({ nullable: true }) // 👈 necesario para tener acceso directo al ID
+  @Column({ nullable: true }) // ID directo
   tipoTrabajoId: number;
 
   @ManyToOne(() => TipoTrabajo, tipo => tipo.trabajadores, {

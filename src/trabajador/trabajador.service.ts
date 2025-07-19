@@ -41,8 +41,8 @@ export class TrabajadorService {
       telefono: dto.telefono,
       direccion: dto.direccion,
       cvUrl: dto.cvUrl,
-      tipo: tipoTrabajo.nombre, // ✅ usamos `tipo`, no `area`
       tipoTrabajo,
+      tipoTrabajoId: tipoTrabajo.id,
       tipoTrabajador: dto.tipoTrabajador,
     });
 
@@ -85,7 +85,7 @@ export class TrabajadorService {
         throw new NotFoundException('Tipo de trabajo no encontrado');
       }
       trabajador.tipoTrabajo = tipoTrabajo;
-      trabajador.tipo = tipoTrabajo.nombre; // ✅ asignamos `tipo`
+      trabajador.tipoTrabajoId = tipoTrabajo.id;
     }
 
     if (dto.tipoTrabajador) {

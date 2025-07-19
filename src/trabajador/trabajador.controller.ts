@@ -38,7 +38,7 @@ const pdfFilter = (_req: any, file: Express.Multer.File, cb: any) => {
     : cb(new Error('Solo se permiten archivos PDF'), false);
 };
 
-@Controller('trabajadores') // ✅ corregido a plural
+@Controller('trabajadores')
 export class TrabajadorController {
   constructor(private readonly trabajadorService: TrabajadorService) {}
 
@@ -83,6 +83,7 @@ export class TrabajadorController {
   ) {
     const extra = file ? { cvUrl: `/uploads/cv/${file.filename}` } : {};
 
+    // Convertir tipoTrabajoId a número si viene como string
     if ((dto as any).tipoTrabajoId)
       (dto as any).tipoTrabajoId = Number((dto as any).tipoTrabajoId);
 

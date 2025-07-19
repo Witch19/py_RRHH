@@ -10,6 +10,7 @@ import {
   UseInterceptors,
   ParseIntPipe,
   Res,
+  BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -37,7 +38,7 @@ const pdfFilter = (_req: any, file: Express.Multer.File, cb: any) => {
     : cb(new Error('Solo se permiten archivos PDF'), false);
 };
 
-@Controller('trabajador')
+@Controller('trabajadores') // ✅ corregido a plural
 export class TrabajadorController {
   constructor(private readonly trabajadorService: TrabajadorService) {}
 
@@ -46,10 +47,14 @@ export class TrabajadorController {
   @UseInterceptors(
     FileInterceptor('file', { storage: storageCfg, fileFilter: pdfFilter }),
   )
-  create(
+  async create(
     @Body() dto: CreateTrabajadorDto,
     @UploadedFile() file?: Express.Multer.File,
   ) {
+    if (!dto.tipoTrabajoId) {
+      throw new BadRequestException('tipoTrabajoId es obligatorio');
+    }
+
     const cvUrl = file ? `/uploads/cv/${file.filename}` : undefined;
     return this.trabajadorService.create({ ...dto, cvUrl });
   }
@@ -71,14 +76,13 @@ export class TrabajadorController {
   @UseInterceptors(
     FileInterceptor('file', { storage: storageCfg, fileFilter: pdfFilter }),
   )
-  update(
+  async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateTrabajadorDto,
     @UploadedFile() file?: Express.Multer.File,
   ) {
     const extra = file ? { cvUrl: `/uploads/cv/${file.filename}` } : {};
 
-    // Aseguramos tipo numérico
     if ((dto as any).tipoTrabajoId)
       (dto as any).tipoTrabajoId = Number((dto as any).tipoTrabajoId);
 

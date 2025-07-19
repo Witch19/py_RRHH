@@ -33,16 +33,10 @@ export class CreateTrabajadorDto {
   @IsString()
   role?: string;
 
-  @IsOptional()
   @IsNumber()
-  tipoTrabajoId?: number;
+  tipoTrabajoId: number; // ✅ ahora obligatorio, ya que tipo depende de esto
 
   @IsOptional()
   @IsEnum(tipoTrabajador)
   tipoTrabajador?: tipoTrabajador;
-
-  // ✅ Nuevo campo obligatorio, lo asigna el backend desde tipoTrabajo.nombre
-  @IsString()
-  @IsNotEmpty()
-  tipo: string;
 }

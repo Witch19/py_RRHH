@@ -18,10 +18,12 @@ export class TipoTrabajoController {
   }
 
   // ✅ Endpoint para el frontend (select de áreas)
-  @Get('enum')
-  findAllEnum() {
-    return this.tipoTrabajoService.findAllEnum();
-  }
+  // ✅ Endpoint para el frontend (select de áreas)
+@Get('enum')
+findAllEnum() {
+  return this.tipoTrabajoService.findAllEnum();
+}
+
 
   @Get(':id')
   findOne(@Param('id') id: string) {

@@ -23,6 +23,7 @@ export class TrabajadorService {
 
   /* ───────── Crear ───────── */
   async create(dto: CreateTrabajadorDto) {
+    // Verificar existencia de tipoTrabajo
     const tipoTrabajo = await this.tipoTrabajoRepository.findOneBy({
       id: dto.tipoTrabajoId,
     });
@@ -30,8 +31,9 @@ export class TrabajadorService {
       throw new NotFoundException('Tipo de trabajo no encontrado');
     }
 
-    const password = dto.password || 'temporal123';
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Hash de contraseña (puede venir vacía, se asigna una por defecto)
+    const rawPassword = dto.password || 'temporal123';
+    const hashedPassword = await bcrypt.hash(rawPassword, 10);
 
     const trabajador = this.trabajadorRepository.create({
       nombre: dto.nombre,
@@ -42,20 +44,21 @@ export class TrabajadorService {
       direccion: dto.direccion,
       cvUrl: dto.cvUrl,
       tipoTrabajo,
-      tipoTrabajoId: tipoTrabajo.id,
       tipoTrabajador: dto.tipoTrabajador,
+      password: hashedPassword,
     });
 
     return await this.trabajadorRepository.save(trabajador);
   }
 
-  /* ───────── Obtener ───────── */
+  /* ───────── Obtener todos ───────── */
   findAll() {
     return this.trabajadorRepository.find({
       relations: ['tipoTrabajo', 'cursos'],
     });
   }
 
+  /* ───────── Obtener uno ───────── */
   async findOne(id: number) {
     const trabajador = await this.trabajadorRepository.findOne({
       where: { id },
@@ -77,6 +80,7 @@ export class TrabajadorService {
       throw new NotFoundException('Trabajador no encontrado');
     }
 
+    // Si se actualiza el tipo de trabajo
     if (dto.tipoTrabajoId) {
       const tipoTrabajo = await this.tipoTrabajoRepository.findOneBy({
         id: dto.tipoTrabajoId,
@@ -85,13 +89,19 @@ export class TrabajadorService {
         throw new NotFoundException('Tipo de trabajo no encontrado');
       }
       trabajador.tipoTrabajo = tipoTrabajo;
-      trabajador.tipoTrabajoId = tipoTrabajo.id;
     }
 
+    // Si se actualiza tipo de trabajador (enum)
     if (dto.tipoTrabajador) {
       trabajador.tipoTrabajador = dto.tipoTrabajador;
     }
 
+    // Si se actualiza la contraseña
+    if (dto.password) {
+      trabajador.password = await bcrypt.hash(dto.password, 10);
+    }
+
+    // Otros campos
     const { password, tipoTrabajoId, tipoTrabajador, ...rest } = dto;
     Object.assign(trabajador, rest);
 

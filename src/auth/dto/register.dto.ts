@@ -1,10 +1,17 @@
-import { IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class RegisterDto {
-
-@IsString()
+  @IsString()
   username: string;
-  
+
   @IsEmail()
   email: string;
 
@@ -12,11 +19,10 @@ export class RegisterDto {
   @MinLength(6)
   password: string;
 
-  @IsString()
   @IsNotEmpty()
-  role: string; // Puedes ponerlo opcional si quieres con @IsOptional()
+  @IsString()
+  role: string; // Si quieres que sea opcional puedes agregar @IsOptional()
 
-  // ✅ Nuevos campos para crear el trabajador si no existe
   @IsOptional()
   @IsString()
   telefono?: string;
@@ -26,7 +32,7 @@ export class RegisterDto {
   direccion?: string;
 
   @IsOptional()
+  @Type(() => Number) // 👈 convierte string a number automáticamente
   @IsNumber()
   tipoTrabajoId?: number;
-
 }

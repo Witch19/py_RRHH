@@ -10,7 +10,7 @@ import { TipoTrabajo } from '../../tipo-trabajo/entities/tipo-trabajo.entity';
 import { Curso } from '../../curso/entities/curso.entity';
 import { tipoTrabajador } from 'src/enums/tipoTrabajador.enum';
 
-@Entity()
+@Entity('trabajador')
 export class Trabajador {
   @PrimaryGeneratedColumn()
   id: number;
@@ -25,6 +25,9 @@ export class Trabajador {
   email: string;
 
   @Column()
+  password: string; // ✅ faltaba campo para autenticación
+
+  @Column({ default: 'TRABAJADOR' })
   role: string;
 
   @Column({ nullable: true })
@@ -43,7 +46,7 @@ export class Trabajador {
   })
   tipoTrabajador: tipoTrabajador;
 
-  @Column({ nullable: true }) // ID directo
+  @Column({ nullable: true }) // FK para relación con TipoTrabajo
   tipoTrabajoId: number;
 
   @ManyToOne(() => TipoTrabajo, tipo => tipo.trabajadores, {

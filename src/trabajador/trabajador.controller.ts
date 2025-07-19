@@ -11,6 +11,8 @@ import {
   ParseIntPipe,
   Res,
   BadRequestException,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -44,6 +46,7 @@ export class TrabajadorController {
 
   /* ─────────────── CREAR ─────────────── */
   @Post()
+  @UsePipes(new ValidationPipe({ transform: true })) // activa @Type(() => Number)
   @UseInterceptors(
     FileInterceptor('file', { storage: storageCfg, fileFilter: pdfFilter }),
   )
@@ -73,6 +76,7 @@ export class TrabajadorController {
 
   /* ─────────────── ACTUALIZAR ─────────────── */
   @Patch(':id')
+  @UsePipes(new ValidationPipe({ transform: true }))
   @UseInterceptors(
     FileInterceptor('file', { storage: storageCfg, fileFilter: pdfFilter }),
   )
@@ -82,11 +86,6 @@ export class TrabajadorController {
     @UploadedFile() file?: Express.Multer.File,
   ) {
     const extra = file ? { cvUrl: `/uploads/cv/${file.filename}` } : {};
-
-    // Convertir tipoTrabajoId a número si viene como string
-    if ((dto as any).tipoTrabajoId)
-      (dto as any).tipoTrabajoId = Number((dto as any).tipoTrabajoId);
-
     return this.trabajadorService.update(id, { ...dto, ...extra });
   }
 

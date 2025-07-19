@@ -1,4 +1,5 @@
 import { IsOptional, IsString, IsEmail, IsEnum, IsNumber, IsNotEmpty } from 'class-validator';
+import { Type } from 'class-transformer';
 import { tipoTrabajador } from 'src/enums/tipoTrabajador.enum';
 
 export class CreateTrabajadorDto {
@@ -33,8 +34,10 @@ export class CreateTrabajadorDto {
   @IsString()
   role?: string;
 
+  @IsNotEmpty()
+  @Type(() => Number) // ✅ convierte el string a number
   @IsNumber()
-  tipoTrabajoId: number; // ✅ ahora obligatorio, ya que tipo depende de esto
+  tipoTrabajoId: number;
 
   @IsOptional()
   @IsEnum(tipoTrabajador)

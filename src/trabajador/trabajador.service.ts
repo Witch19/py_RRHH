@@ -1,4 +1,3 @@
-// src/trabajador/trabajador.service.ts
 import {
   Injectable,
   ConflictException,
@@ -42,9 +41,9 @@ export class TrabajadorService {
       telefono: dto.telefono,
       direccion: dto.direccion,
       cvUrl: dto.cvUrl,
+      tipo: tipoTrabajo.nombre, // ✅ usamos `tipo`, no `area`
       tipoTrabajo,
-      area: tipoTrabajo.nombre,
-      tipoTrabajador: dto.tipoTrabajador, // ← Agregado el enum aquí
+      tipoTrabajador: dto.tipoTrabajador,
     });
 
     return await this.trabajadorRepository.save(trabajador);
@@ -86,7 +85,7 @@ export class TrabajadorService {
         throw new NotFoundException('Tipo de trabajo no encontrado');
       }
       trabajador.tipoTrabajo = tipoTrabajo;
-      trabajador.area = tipoTrabajo.nombre;
+      trabajador.tipo = tipoTrabajo.nombre; // ✅ asignamos `tipo`
     }
 
     if (dto.tipoTrabajador) {

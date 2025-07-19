@@ -1,4 +1,3 @@
-// src/trabajador/entities/trabajador.entity.ts
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -37,15 +36,23 @@ export class Trabajador {
   @Column({ nullable: true })
   cvUrl?: string;
 
-  @Column({ nullable: true })
-  area?: string;
+  // ✅ área textual, se copia desde tipoTrabajo.nombre
+  @Column()
+  tipo: string;
 
-  // ✅ ENUM que representa tipo/cargo del trabajador (ej: INGENIERIA, OPERARIO, etc.)
-  @Column({ type: 'enum', enum: tipoTrabajador, default: tipoTrabajador.OPERARIO })
+  // ✅ ENUM que representa tipo/cargo del trabajador
+  @Column({
+    type: 'enum',
+    enum: tipoTrabajador,
+    default: tipoTrabajador.OPERARIO,
+  })
   tipoTrabajador: tipoTrabajador;
 
-  // ✅ Relación con tabla TipoTrabajo (ej: departamento personalizado)
-  @ManyToOne(() => TipoTrabajo, tipo => tipo.trabajadores, { eager: true, onDelete: 'SET NULL' })
+  // ✅ Relación con tabla TipoTrabajo
+  @ManyToOne(() => TipoTrabajo, tipo => tipo.trabajadores, {
+    eager: true,
+    onDelete: 'SET NULL',
+  })
   @JoinColumn({ name: 'tipoTrabajoId' })
   tipoTrabajo: TipoTrabajo;
 

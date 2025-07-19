@@ -30,5 +30,10 @@ export class UpdateTrabajadorDto extends PartialType(CreateTrabajadorDto) {
 
   @IsOptional()
   @IsEnum(tipoTrabajador)
-  tipoTrabajador?: tipoTrabajador; // ← agregado correctamente
+  tipoTrabajador?: tipoTrabajador;
+
+  // ✅ añadido el campo `tipo` para permitir su actualización si se requiere
+  @IsOptional()
+  @IsString()
+  tipo?: string;
 }

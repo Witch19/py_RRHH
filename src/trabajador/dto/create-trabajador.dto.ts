@@ -1,12 +1,13 @@
-// src/trabajador/dto/create-trabajador.dto.ts
-import { IsOptional, IsString, IsEmail, IsEnum, IsNumber } from 'class-validator';
+import { IsOptional, IsString, IsEmail, IsEnum, IsNumber, IsNotEmpty } from 'class-validator';
 import { tipoTrabajador } from 'src/enums/tipoTrabajador.enum';
 
 export class CreateTrabajadorDto {
   @IsString()
+  @IsNotEmpty()
   nombre: string;
 
   @IsString()
+  @IsNotEmpty()
   apellido: string;
 
   @IsEmail()
@@ -32,13 +33,16 @@ export class CreateTrabajadorDto {
   @IsString()
   role?: string;
 
-  // Relación con TipoTrabajo
   @IsOptional()
   @IsNumber()
   tipoTrabajoId?: number;
 
-  // Enum tipoTrabajador
   @IsOptional()
   @IsEnum(tipoTrabajador)
   tipoTrabajador?: tipoTrabajador;
+
+  // ✅ Nuevo campo obligatorio, lo asigna el backend desde tipoTrabajo.nombre
+  @IsString()
+  @IsNotEmpty()
+  tipo: string;
 }

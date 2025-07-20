@@ -11,6 +11,7 @@ import { RolesGuard } from '../roles/roles.guard';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Trabajador } from '../trabajador/entities/trabajador.entity';
+import { TipoTrabajoModule } from '../tipo-trabajo/tipo-trabajo.module'; // 👈 AGREGA ESTO
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { Trabajador } from '../trabajador/entities/trabajador.entity';
     }),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     TypeOrmModule.forFeature([Trabajador]),
+    TipoTrabajoModule, // 👈 AGREGA ESTE MÓDULO AQUÍ
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, RolesGuard],

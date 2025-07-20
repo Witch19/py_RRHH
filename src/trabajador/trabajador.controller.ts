@@ -26,7 +26,7 @@ import { CreateTrabajadorDto } from './dto/create-trabajador.dto';
 import { UpdateTrabajadorDto } from './dto/update-trabajador.dto';
 
 const storageCfg = diskStorage({
-  destination: './uploads/cv',
+  destination: './public/uploads/cv',
   filename: (_req, file, cb) => {
     const name = file.originalname.split('.')[0];
     const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
@@ -40,13 +40,13 @@ const pdfFilter = (_req: any, file: Express.Multer.File, cb: any) => {
     : cb(new Error('Solo se permiten archivos PDF'), false);
 };
 
-@Controller('trabajadores')
+@Controller('trabajador')
 export class TrabajadorController {
   constructor(private readonly trabajadorService: TrabajadorService) {}
 
   /* ─────────────── CREAR ─────────────── */
   @Post()
-  @UsePipes(new ValidationPipe({ transform: true })) // activa @Type(() => Number)
+  @UsePipes(new ValidationPipe({ transform: true }))
   @UseInterceptors(
     FileInterceptor('file', { storage: storageCfg, fileFilter: pdfFilter }),
   )
@@ -55,11 +55,11 @@ export class TrabajadorController {
     @UploadedFile() file?: Express.Multer.File,
   ) {
     if (!dto.tipoTrabajoId) {
-      throw new BadRequestException('tipoTrabajoId es obligatorio');
+      throw new BadRequestException('tipoTrabajo es obligatorio');
     }
 
-    const cvUrl = file ? `/uploads/cv/${file.filename}` : undefined;
-    return this.trabajadorService.create({ ...dto, cvUrl });
+    const cvUrl = file ? `/public/uploads/cv/${file.filename}` : undefined;
+    return this.trabajadorService.create({ ...dto, });
   }
 
   /* ─────────────── LISTAR ─────────────── */
@@ -85,7 +85,7 @@ export class TrabajadorController {
     @Body() dto: UpdateTrabajadorDto,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    const extra = file ? { cvUrl: `/uploads/cv/${file.filename}` } : {};
+    const extra = file ? { cvUrl: `/public/uploads/cv/${file.filename}` } : {};
     return this.trabajadorService.update(id, { ...dto, ...extra });
   }
 

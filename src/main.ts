@@ -11,26 +11,23 @@ async function bootstrap() {
   });
 
   const allowedOrigins = [
-  'http://localhost:5173',
-  'https://py-rrhh-frontend-h5qzhpeg6c-saavedras-projects-6ac50bef.vercel.app',
-  'https://py-rrhh-frontend-o7ly4npyf-saavedras-projects-6ac50bef.vercel.app',
-  'https://nestjs-rrhh-backend-api.desarrollo-software.xyz',
-];
-
+    'http://localhost:5173',
+    'https://py-rrhh-frontend-h5qzhpeg6c-saavedras-projects-6ac50bef.vercel.app',
+    'https://py-rrhh-frontend-o7ly4npyf-saavedras-projects-6ac50bef.vercel.app',
+  ];
 
   app.enableCors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('No autorizado por CORS'));
-      }
-    },
+    origin: allowedOrigins,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
+  // ✅ Manejo manual de OPTIONS (preflight)
+  const expressApp = app.getHttpAdapter().getInstance();
+  expressApp.options('*', (_req, res) => {
+    res.sendStatus(204);
+  });
 
   await app.listen(3105);
 }

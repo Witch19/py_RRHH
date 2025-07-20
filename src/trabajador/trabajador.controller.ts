@@ -26,7 +26,7 @@ import { CreateTrabajadorDto } from './dto/create-trabajador.dto';
 import { UpdateTrabajadorDto } from './dto/update-trabajador.dto';
 
 const storageCfg = diskStorage({
-  destination: './public/uploads/cv',
+  destination: './uploads/cv',
   filename: (_req, file, cb) => {
     const name = file.originalname.split('.')[0];
     const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
@@ -40,7 +40,7 @@ const pdfFilter = (_req: any, file: Express.Multer.File, cb: any) => {
     : cb(new Error('Solo se permiten archivos PDF'), false);
 };
 
-@Controller('trabajador')
+@Controller('trabajadores')
 export class TrabajadorController {
   constructor(private readonly trabajadorService: TrabajadorService) {}
 
@@ -55,11 +55,11 @@ export class TrabajadorController {
     @UploadedFile() file?: Express.Multer.File,
   ) {
     if (!dto.tipoTrabajoId) {
-      throw new BadRequestException('tipoTrabajo es obligatorio');
+      throw new BadRequestException('tipoTrabajoId es obligatorio');
     }
 
-    const cvUrl = file ? `/public/uploads/cv/${file.filename}` : undefined;
-    return this.trabajadorService.create({ ...dto, });
+    const cvUrl = file ? `/uploads/cv/${file.filename}` : undefined;
+    return this.trabajadorService.create({ ...dto, cvUrl });
   }
 
   /* ─────────────── LISTAR ─────────────── */
@@ -85,7 +85,7 @@ export class TrabajadorController {
     @Body() dto: UpdateTrabajadorDto,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    const extra = file ? { cvUrl: `/public/uploads/cv/${file.filename}` } : {};
+    const extra = file ? { cvUrl: `/uploads/cv/${file.filename}` } : {};
     return this.trabajadorService.update(id, { ...dto, ...extra });
   }
 
@@ -104,7 +104,7 @@ export class TrabajadorController {
       return res.status(404).json({ message: 'CV no encontrado' });
     }
 
-    const cvPath = path.join(__dirname, '..', '..', trabajador.cvUrl);
+    const cvPath = path.join(process.cwd(), trabajador.cvUrl.replace(/^\//, ''));
     if (!fs.existsSync(cvPath)) {
       return res
         .status(404)

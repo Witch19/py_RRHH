@@ -56,7 +56,6 @@ async login(@Body() body: { email: string; password: string }) {
     email: userWithoutPassword.email,
     username: userWithoutPassword.username ?? 'Usuario',
     role: userWithoutPassword.role ?? 'USER',
-    trabajadorId: userWithoutPassword.trabajadorId ?? null,
   };
 
   return { user: safeUser, token };

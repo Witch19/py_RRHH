@@ -13,7 +13,6 @@ import {
   BadRequestException,
   UsePipes,
   ValidationPipe,
-  UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -25,9 +24,6 @@ import * as path from 'path';
 import { TrabajadorService } from './trabajador.service';
 import { CreateTrabajadorDto } from './dto/create-trabajador.dto';
 import { UpdateTrabajadorDto } from './dto/update-trabajador.dto';
-import { JwtAuthGuard } from '../auth/jwt.guard';
-import { RolesGuard } from '../roles/roles.guard';
-import { Roles } from '../roles/roles.decorator';
 
 const storageCfg = diskStorage({
   destination: './uploads/cv',
@@ -44,13 +40,11 @@ const pdfFilter = (_req: any, file: Express.Multer.File, cb: any) => {
     : cb(new Error('Solo se permiten archivos PDF'), false);
 };
 
-@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('trabajadores')
 export class TrabajadorController {
   constructor(private readonly trabajadorService: TrabajadorService) {}
 
   /* ─────────────── CREAR ─────────────── */
-  @Roles('ADMIN')
   @Post()
   @UsePipes(new ValidationPipe({ transform: true })) // activa @Type(() => Number)
   @UseInterceptors(
@@ -64,12 +58,11 @@ export class TrabajadorController {
       throw new BadRequestException('tipoTrabajoId es obligatorio');
     }
 
-    const cvUrl = file ? `/public/uploads/cv/${file.filename}` : undefined;
+    const cvUrl = file ? `/uploads/cv/${file.filename}` : undefined;
     return this.trabajadorService.create({ ...dto, cvUrl });
   }
 
   /* ─────────────── LISTAR ─────────────── */
-  @Roles('ADMIN')
   @Get()
   findAll() {
     return this.trabajadorService.findAll();
@@ -82,7 +75,6 @@ export class TrabajadorController {
   }
 
   /* ─────────────── ACTUALIZAR ─────────────── */
-  @Roles('ADMIN')
   @Patch(':id')
   @UsePipes(new ValidationPipe({ transform: true }))
   @UseInterceptors(
@@ -93,12 +85,11 @@ export class TrabajadorController {
     @Body() dto: UpdateTrabajadorDto,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    const extra = file ? { cvUrl: `/public/uploads/cv/${file.filename}` } : {};
+    const extra = file ? { cvUrl: `/uploads/cv/${file.filename}` } : {};
     return this.trabajadorService.update(id, { ...dto, ...extra });
   }
 
   /* ─────────────── ELIMINAR ─────────────── */
-  @Roles('ADMIN')
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.trabajadorService.remove(id);

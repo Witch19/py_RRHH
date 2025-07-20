@@ -40,6 +40,6 @@ export class CreateTrabajadorDto {
   tipoTrabajoId: number;
 
   @IsOptional()
-  @IsString()
-  tipoTrabajador?: string; // ✅ Ahora es un string, sin enum
+  @IsEnum(tipoTrabajador)
+  tipoTrabajador?: tipoTrabajador;
 }

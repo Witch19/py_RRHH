@@ -2,7 +2,6 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { TipoTrabajoService } from './tipo-trabajo.service';
 import { CreateTipoTrabajoDto } from './dto/create-tipo-trabajo.dto';
 import { UpdateTipoTrabajoDto } from './dto/update-tipo-trabajo.dto';
-import { Public } from '../public.decorator'; // ✅ Asegúrate de importar esto si lo usas
 
 @Controller('tipo-trabajo')
 export class TipoTrabajoController {
@@ -13,17 +12,18 @@ export class TipoTrabajoController {
     return this.tipoTrabajoService.create(dto);
   }
 
-  @Public() // ✅ Este endpoint estará libre (sin token)
   @Get()
   findAll() {
     return this.tipoTrabajoService.findAll();
   }
 
-  @Public()
-  @Get('enum')
-  findAllEnum() {
-    return this.tipoTrabajoService.findAllEnum();
-  }
+  // ✅ Endpoint para el frontend (select de áreas)
+  // ✅ Endpoint para el frontend (select de áreas)
+@Get('enum')
+findAllEnum() {
+  return this.tipoTrabajoService.findAllEnum();
+}
+
 
   @Get(':id')
   findOne(@Param('id') id: string) {

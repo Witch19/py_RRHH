@@ -2,6 +2,7 @@ import {
   Injectable,
   ConflictException,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -23,30 +24,35 @@ export class TrabajadorService {
 
   /* ───────── Crear ───────── */
   async create(dto: CreateTrabajadorDto) {
-    const tipoTrabajo = await this.tipoTrabajoRepository.findOneBy({
-      id: dto.tipoTrabajoId,
-    });
-    if (!tipoTrabajo) {
-      throw new NotFoundException('Tipo de trabajo no encontrado');
-    }
-
-    const rawPassword = dto.password || 'temporal123';
-    const hashedPassword = await bcrypt.hash(rawPassword, 10);
-
-    const trabajador = this.trabajadorRepository.create({
-      nombre: dto.nombre,
-      apellido: dto.apellido,
-      email: dto.email,
-      role: (dto.role ?? 'TRABAJADOR').toUpperCase(),
-      telefono: dto.telefono,
-      direccion: dto.direccion,
-      cvUrl: dto.cvUrl,
-      tipoTrabajo,
-      password: hashedPassword,
-    });
-
-    return await this.trabajadorRepository.save(trabajador);
+  if (dto.tipoTrabajoId !== undefined && (isNaN(dto.tipoTrabajoId) || dto.tipoTrabajoId <= 0)) {
+    throw new BadRequestException('tipoTrabajoId inválido');
   }
+
+  const tipoTrabajo = await this.tipoTrabajoRepository.findOneBy({
+    id: dto.tipoTrabajoId,
+  });
+  if (!tipoTrabajo) {
+    throw new NotFoundException(`Tipo de trabajo con id ${dto.tipoTrabajoId} no encontrado`);
+  }
+
+  const rawPassword = dto.password || 'temporal123';
+  const hashedPassword = await bcrypt.hash(rawPassword, 10);
+
+  const trabajador = this.trabajadorRepository.create({
+    nombre: dto.nombre,
+    apellido: dto.apellido,
+    email: dto.email,
+    role: (dto.role ?? 'TRABAJADOR').toUpperCase(),
+    telefono: dto.telefono,
+    direccion: dto.direccion,
+    cvUrl: dto.cvUrl,
+    tipoTrabajo,
+    password: hashedPassword,
+  });
+
+  return await this.trabajadorRepository.save(trabajador);
+}
+
 
   /* ───────── Obtener todos ───────── */
   findAll() {

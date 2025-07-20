@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Aspirante } from './entities/aspirante.entity';
 import { TipoTrabajo } from '../tipo-trabajo/entities/tipo-trabajo.entity';
+import * as fs from 'fs';
 
 @Injectable()
 export class AspiranteService {
@@ -25,7 +26,7 @@ export class AspiranteService {
       email: data.email,
       mensaje: data.mensaje,
       tipoTrabajo,
-      cvUrl: filename ? `/public/uploads/cv/${filename}` : undefined,
+      cvUrl: filename ? `${filename}` : undefined, // Solo el nombre del archivo
     });
 
     return this.repo.save(aspirante);
@@ -33,7 +34,30 @@ export class AspiranteService {
 
   findAll() {
     return this.repo.find({
-      relations: ['tipoTrabajo'], // ✅ importante para que se muestre el nombre
+      relations: ['tipoTrabajo'],
     });
+  }
+
+  async remove(id: string) {
+    const aspirante = await this.repo.findOne({
+      where: { id: parseInt(id) },
+    });
+
+    if (!aspirante) {
+      throw new NotFoundException('Aspirante no encontrado');
+    }
+
+    // Eliminar archivo si existe
+    if (aspirante.cvUrl) {
+      const filePath = `./public/uploads/cv/${aspirante.cvUrl}`;
+      try {
+        fs.unlinkSync(filePath);
+      } catch (e) {
+        console.warn('Error eliminando archivo:', e.message);
+      }
+    }
+
+    await this.repo.remove(aspirante);
+    return { message: 'Aspirante eliminado' };
   }
 }

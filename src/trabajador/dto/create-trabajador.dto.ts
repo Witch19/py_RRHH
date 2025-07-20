@@ -1,4 +1,10 @@
-import { IsOptional, IsString, IsEmail, IsNumber, IsNotEmpty } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsEmail,
+  IsNumber,
+  IsNotEmpty,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateTrabajadorDto {
@@ -33,8 +39,8 @@ export class CreateTrabajadorDto {
   @IsString()
   role?: string;
 
-  @IsNotEmpty()
-  @Type(() => Number) // ✅ convierte el string a number
+  @IsOptional()
+  @Type(() => Number)
   @IsNumber()
-  tipoTrabajoId: number;
+  tipoTrabajoId?: number;
 }

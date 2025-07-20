@@ -1,6 +1,4 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateTrabajadorDto } from './create-trabajador.dto';
 
-export class UpdateTrabajadorDto extends PartialType(CreateTrabajadorDto) {
-  [x: string]: any;
-}
+export class UpdateTrabajadorDto extends PartialType(CreateTrabajadorDto) {}

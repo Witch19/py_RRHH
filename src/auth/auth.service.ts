@@ -12,11 +12,13 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { DeepPartial } from 'typeorm';
 
 import { RegisterDto } from './dto/register.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User, UserDocument } from './schemas/user.schema';
 import { Trabajador } from '../trabajador/entities/trabajador.entity';
+import { TipoTrabajo } from '../tipo-trabajo/entities/tipo-trabajo.entity';
 
 @Injectable()
 export class AuthService {
@@ -25,7 +27,9 @@ export class AuthService {
     private jwtService: JwtService,
     @InjectRepository(Trabajador)
     private readonly trabajadorRepo: Repository<Trabajador>,
-  ) {}
+    @InjectRepository(TipoTrabajo)
+    private readonly tipoTrabajoRepo: Repository<TipoTrabajo>,
+  ) { }
 
   /* ----------------------------------------------------------------
    * 1. REGISTRO
@@ -45,34 +49,39 @@ export class AuthService {
       });
 
       if (!trabajador) {
-        // Buscar tipoTrabajo
-        const tipoTrabajoId = Number((dto as any).tipoTrabajoId) || 1;
+        // Buscar tipoTrabajo si viene
+        let tipoTrabajo: TipoTrabajo | null = null;
 
-        const tipoTrabajo = await this.trabajadorRepo.manager.findOne(
-          'TipoTrabajo',
-          { where: { id: tipoTrabajoId } }
-        );
+        if (dto.tipoTrabajoId !== undefined && dto.tipoTrabajoId !== null) {
+          const id = Number(dto.tipoTrabajoId);
+          if (isNaN(id) || id <= 0) {
+            throw new BadRequestException('tipoTrabajoId inválido');
+          }
 
-        if (!tipoTrabajo) {
-          throw new NotFoundException(
-            `Tipo de trabajo con ID ${tipoTrabajoId} no encontrado`,
-          );
+          tipoTrabajo = await this.tipoTrabajoRepo.findOne({
+            where: { id },
+          });
+
+          if (!tipoTrabajo) {
+            throw new NotFoundException(
+              `Tipo de trabajo con ID ${id} no encontrado`,
+            );
+          }
         }
 
-        // Crear trabajador
+        // Crear trabajador (usando la misma variable trabajador)
         trabajador = this.trabajadorRepo.create({
-  nombre: dto.username,
-  apellido: '-',           // valor temporal
-  email: dto.email,
-  telefono: dto.telefono,
-  direccion: dto.direccion,
-  role: dto.role || 'TRABAJADOR',  // ✅ Añadido
-  tipoTrabajo,
-});
+          nombre: dto.username,
+          apellido: '-',
+          email: dto.email,
+          telefono: dto.telefono,
+          direccion: dto.direccion,
+          password: hashedPassword,
+          role: dto.role?.toUpperCase() || 'TRABAJADOR',
+          tipoTrabajo,
+        } as DeepPartial<Trabajador>);
 
-
-
-        await this.trabajadorRepo.save(trabajador);
+        trabajador = await this.trabajadorRepo.save(trabajador);
       }
 
       // Crear usuario en MongoDB
@@ -80,7 +89,7 @@ export class AuthService {
         username: dto.username,
         email: dto.email,
         password: hashedPassword,
-        role: dto.role || 'TRABAJADOR',
+        role: dto.role?.toUpperCase() || 'TRABAJADOR',
         trabajadorId: trabajador.id,
       });
 
@@ -97,18 +106,16 @@ export class AuthService {
         },
       };
     } catch (error) {
-      console.error('❌ Error en register:', error);
+      console.error('❌ Error en register:', error?.message || error);
       throw new InternalServerErrorException('Error al registrar usuario');
     }
   }
 
+
   /* ----------------------------------------------------------------
    * 2. VALIDACIÓN DE CREDENCIALES
   ---------------------------------------------------------------- */
-  async validateUser(
-    email: string,
-    password: string,
-  ): Promise<UserDocument | null> {
+  async validateUser(email: string, password: string): Promise<UserDocument | null> {
     const user = await this.userModel.findOne({ email }).exec();
     if (!user) return null;
 
@@ -121,15 +128,12 @@ export class AuthService {
   ---------------------------------------------------------------- */
   generateJwt(user: UserDocument) {
     const payload = {
-  sub: user._id,
-  email: user.email,
-  username: user.username,
-  role: user.role,
-  trabajadorId: user.trabajadorId,  // ✅ Agregado aquí
-};
-
-const token = this.jwtService.sign(payload);
-
+      sub: user._id,
+      email: user.email,
+      username: user.username,
+      role: user.role,
+      trabajadorId: user.trabajadorId,
+    };
 
     return this.jwtService.sign(payload);
   }
@@ -143,6 +147,7 @@ const token = this.jwtService.sign(payload);
     const trabajador = await this.trabajadorRepo.findOne({
       where: { email: user.email },
     });
+
     const trabajadorId = trabajador?.id ?? null;
 
     if (trabajadorId) {

@@ -13,7 +13,9 @@ import { SolicitudesModule } from './solicitudes/solicitudes.module';
 import { TrabajadorModule } from './trabajador/trabajador.module';
 import { CursoModule } from './curso/curso.module';
 import { AspiranteModule } from './aspirante/aspirante.module';
-import { RegisterModule } from './register/register.module';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './auth/jwt.guard';
+import { RolesGuard } from './roles/roles.guard';
 
 @Module({
   imports: [
@@ -50,9 +52,18 @@ import { RegisterModule } from './register/register.module';
     TrabajadorModule,
     CursoModule,
     AspiranteModule,
-    RegisterModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+   providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard, // ✅ Guardia JWT global
+    },
+    {
+    provide: APP_GUARD,
+    useClass: RolesGuard,
+  },
+  ],
 })
 export class AppModule {}

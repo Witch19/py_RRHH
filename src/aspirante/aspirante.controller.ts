@@ -15,7 +15,7 @@ export class AspiranteController {
   @Public()
   @UseInterceptors(FileInterceptor('file', {
     storage: diskStorage({
-      destination: './uploads/cv/',
+      destination: './public/uploads/cv/',
       filename: (req, file, cb) => {
         const name = `${Date.now()}-${file.originalname}`;
         cb(null, name);

@@ -25,7 +25,7 @@ export class AuthService {
     private jwtService: JwtService,
     @InjectRepository(Trabajador)
     private readonly trabajadorRepo: Repository<Trabajador>,
-  ) {}
+  ) { }
 
   /* ----------------------------------------------------------------
    * 1. REGISTRO
@@ -61,16 +61,14 @@ export class AuthService {
 
         // Crear trabajador
         trabajador = this.trabajadorRepo.create({
-  nombre: dto.username,
-  apellido: '-',           // valor temporal
-  email: dto.email,
-  telefono: dto.telefono,
-  direccion: dto.direccion,
-  role: dto.role || 'TRABAJADOR',  // ✅ Añadido
-  tipoTrabajo,
-});
-
-
+          nombre: dto.username,
+          apellido: '-',           // valor temporal
+          email: dto.email,
+          telefono: dto.telefono,
+          direccion: dto.direccion,
+          role: dto.role || 'TRABAJADOR',  // ✅ Añadido
+          tipoTrabajo,
+        });
 
         await this.trabajadorRepo.save(trabajador);
       }
@@ -121,14 +119,14 @@ export class AuthService {
   ---------------------------------------------------------------- */
   generateJwt(user: UserDocument) {
     const payload = {
-  sub: user._id,
-  email: user.email,
-  username: user.username,
-  role: user.role,
-  trabajadorId: user.trabajadorId,  // ✅ Agregado aquí
-};
+      sub: user._id,
+      email: user.email,
+      username: user.username,
+      role: user.role,
+      trabajadorId: user.trabajadorId,  // ✅ Agregado aquí
+    };
 
-const token = this.jwtService.sign(payload);
+    const token = this.jwtService.sign(payload);
 
 
     return this.jwtService.sign(payload);

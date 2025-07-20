@@ -13,7 +13,6 @@ import { SolicitudesModule } from './solicitudes/solicitudes.module';
 import { TrabajadorModule } from './trabajador/trabajador.module';
 import { CursoModule } from './curso/curso.module';
 import { AspiranteModule } from './aspirante/aspirante.module';
-import { RegisterModule } from './register/register.module';
 
 @Module({
   imports: [
@@ -50,7 +49,6 @@ import { RegisterModule } from './register/register.module';
     TrabajadorModule,
     CursoModule,
     AspiranteModule,
-    RegisterModule,
   ],
   controllers: [AppController],
   providers: [AppService],

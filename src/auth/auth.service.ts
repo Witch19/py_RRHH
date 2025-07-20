@@ -1,3 +1,4 @@
+// src/auth/auth.service.ts
 import {
   Injectable,
   ConflictException,
@@ -16,7 +17,6 @@ import { RegisterDto } from './dto/register.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User, UserDocument } from './schemas/user.schema';
 import { Trabajador } from '../trabajador/entities/trabajador.entity';
-import { TipoTrabajo } from '../tipo-trabajo/entities/tipo-trabajo.entity';
 
 @Injectable()
 export class AuthService {
@@ -25,8 +25,6 @@ export class AuthService {
     private jwtService: JwtService,
     @InjectRepository(Trabajador)
     private readonly trabajadorRepo: Repository<Trabajador>,
-    @InjectRepository(TipoTrabajo)
-    private readonly tipoTrabajoRepo: Repository<TipoTrabajo>,
   ) {}
 
   /* ----------------------------------------------------------------
@@ -47,11 +45,13 @@ export class AuthService {
       });
 
       if (!trabajador) {
-        const tipoTrabajoId = dto.tipoTrabajoId || 1;
+        // Buscar tipoTrabajo
+        const tipoTrabajoId = Number((dto as any).tipoTrabajoId) || 1;
 
-        const tipoTrabajo = await this.tipoTrabajoRepo.findOne({
-          where: { id: tipoTrabajoId },
-        });
+        const tipoTrabajo = await this.trabajadorRepo.manager.findOne(
+          'TipoTrabajo',
+          { where: { id: tipoTrabajoId } }
+        );
 
         if (!tipoTrabajo) {
           throw new NotFoundException(
@@ -59,16 +59,18 @@ export class AuthService {
           );
         }
 
-        // Crear trabajador en PostgreSQL
+        // Crear trabajador
         trabajador = this.trabajadorRepo.create({
-          nombre: dto.username,
-          apellido: '-', // valor temporal
-          email: dto.email,
-          telefono: dto.telefono,
-          direccion: dto.direccion,
-          role: dto.role || 'TRABAJADOR',
-          tipoTrabajo,
-        });
+  nombre: dto.username,
+  apellido: '-',           // valor temporal
+  email: dto.email,
+  telefono: dto.telefono,
+  direccion: dto.direccion,
+  role: dto.role || 'TRABAJADOR',  // ✅ Añadido
+  tipoTrabajo,
+});
+
+
 
         await this.trabajadorRepo.save(trabajador);
       }
@@ -119,18 +121,21 @@ export class AuthService {
   ---------------------------------------------------------------- */
   generateJwt(user: UserDocument) {
     const payload = {
-      sub: user._id,
-      email: user.email,
-      username: user.username,
-      role: user.role,
-      trabajadorId: user.trabajadorId,
-    };
+  sub: user._id,
+  email: user.email,
+  username: user.username,
+  role: user.role,
+  trabajadorId: user.trabajadorId,  // ✅ Agregado aquí
+};
+
+const token = this.jwtService.sign(payload);
+
 
     return this.jwtService.sign(payload);
   }
 
   /* ----------------------------------------------------------------
-   * 4. ASEGURAR trabajadorId
+   * 4. ASEGURAR trabajadorId (login / flujos antiguos)
   ---------------------------------------------------------------- */
   async asegurarTrabajadorId(user: UserDocument): Promise<UserDocument> {
     if (user.trabajadorId) return user;
@@ -138,7 +143,6 @@ export class AuthService {
     const trabajador = await this.trabajadorRepo.findOne({
       where: { email: user.email },
     });
-
     const trabajadorId = trabajador?.id ?? null;
 
     if (trabajadorId) {
@@ -168,7 +172,7 @@ export class AuthService {
   }
 
   /* ----------------------------------------------------------------
-   * 6. PERFIL
+   * 6. PERFIL DEL USUARIO
   ---------------------------------------------------------------- */
   async getProfile(userId: string) {
     const user = await this.userModel.findById(userId).select('-password');
@@ -177,7 +181,7 @@ export class AuthService {
   }
 
   /* ----------------------------------------------------------------
-   * 7. GET TRABAJADOR POR EMAIL
+   * 7. Obtener trabajador por email (utilidad)
   ---------------------------------------------------------------- */
   async getTrabajadorPorEmail(email: string) {
     return this.trabajadorRepo.findOne({ where: { email } });

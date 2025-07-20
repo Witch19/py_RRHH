@@ -11,10 +11,12 @@ async function bootstrap() {
   });
 
   const allowedOrigins = [
-    'http://localhost:5173',
-    'https://py-rrhh-frontend-h5qzhpeg6c-saavedras-projects-6ac50bef.vercel.app',
-    'https://nestjs-rrhh-backend-api.desarrollo-software.xyz',
-  ];
+  'http://localhost:5173',
+  'https://py-rrhh-frontend-h5qzhpeg6c-saavedras-projects-6ac50bef.vercel.app',
+  'https://py-rrhh-frontend-o7ly4npyf-saavedras-projects-6ac50bef.vercel.app',
+  'https://nestjs-rrhh-backend-api.desarrollo-software.xyz',
+];
+
 
   app.enableCors({
     origin: (origin, callback) => {

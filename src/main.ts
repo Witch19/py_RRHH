@@ -10,7 +10,21 @@ async function bootstrap() {
     prefix: '/uploads',
   });
 
-  app.enableCors();
+  const allowedOrigins = [
+  'http://localhost:5173',
+  'https://py-rrhh-frontend-h5qzhpeg6c-saavedras-projects-6ac50bef.vercel.app',
+];
+
+app.enableCors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('No autorizado por CORS'));
+    }
+  },
+  credentials: true,
+});
 
   await app.listen(3105);
 }

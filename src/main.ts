@@ -11,20 +11,24 @@ async function bootstrap() {
   });
 
   const allowedOrigins = [
-  'http://localhost:5173',
-  'https://py-rrhh-frontend-h5qzhpeg6c-saavedras-projects-6ac50bef.vercel.app',
-];
+    'http://localhost:5173',
+    'https://py-rrhh-frontend-h5qzhpeg6c-saavedras-projects-6ac50bef.vercel.app',
+    'https://nestjs-rrhh-backend-api.desarrollo-software.xyz',
+  ];
 
-app.enableCors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('No autorizado por CORS'));
-    }
-  },
-  credentials: true,
-});
+  app.enableCors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('No autorizado por CORS'));
+      }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
+
 
   await app.listen(3105);
 }

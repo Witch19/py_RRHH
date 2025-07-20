@@ -193,22 +193,30 @@ export class AuthService {
   }
 
   /* ----------------------------------------------------------------
-   * 8. UPDATE PROFILE
-  ---------------------------------------------------------------- */
+ * 8. UPDATE PROFILE
+---------------------------------------------------------------- */
   async updateProfile(userId: string, dto: UpdateUserDto) {
     const user = await this.userModel.findById(userId);
     if (!user) throw new NotFoundException('Usuario no encontrado');
 
+    // Validar si el nuevo correo ya existe
     if (dto.email && dto.email !== user.email) {
       const emailExists = await this.userModel.findOne({ email: dto.email });
-      if (emailExists)
+      if (emailExists) {
         throw new ConflictException('Este correo ya está en uso');
+      }
     }
 
-    user.username = dto.username ?? user.username;
-    user.email = dto.email ?? user.email;
+    // Solo actualiza campos permitidos
+    if (dto.username) user.username = dto.username;
+    if (dto.email) user.email = dto.email;
 
+    // 🚫 No se toca el rol
     await user.save();
-    return user;
+
+    // Retorna el usuario sin contraseña
+    const { password, ...safeUser } = user.toObject();
+    return safeUser;
   }
+
 }

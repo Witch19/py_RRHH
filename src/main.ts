@@ -9,7 +9,8 @@ async function bootstrap() {
   app.useStaticAssets(join(__dirname, '..', 'uploads'), {
     prefix: '/uploads',
   });
-
+  app.enableCors();
+/*
   const allowedOrigins = [
     'http://localhost:5173',
     'https://py-rrhh-frontend-h5qzhpeg6c-saavedras-projects-6ac50bef.vercel.app',
@@ -28,7 +29,7 @@ async function bootstrap() {
   expressApp.options('*', (_req, res) => {
     res.sendStatus(204);
   });
-
+*/
   await app.listen(3105);
 }
 bootstrap();

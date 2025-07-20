@@ -31,7 +31,7 @@ export class TipoTrabajoService {
   /* ───── ENUM para frontend (opcional) ───── */
   async findAllEnum() {
     const tipos = await this.tipoTrabajoRepository.find();
-    return tipos.map(tipo => ({ key: tipo.id.toString(), value: tipo.nombre }));
+    return tipos.map(tipo => ({ id: tipo.id.toString(), nombre: tipo.nombre }));
   }
 
   /* ───────────── DETALLE ───────────── */

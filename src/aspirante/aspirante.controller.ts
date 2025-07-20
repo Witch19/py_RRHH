@@ -13,7 +13,7 @@ export class AspiranteController {
 
   @Post()
   @Public()
-  @UseInterceptors(FileInterceptor('file', {
+  @UseInterceptors(FileInterceptor('cv', { // 🔁 Aquí cambiamos de 'file' a 'cv'
     storage: diskStorage({
       destination: './public/uploads/cv/',
       filename: (req, file, cb) => {

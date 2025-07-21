@@ -21,9 +21,6 @@ import { Trabajador } from '../trabajador/entities/trabajador.entity';
 
 @Injectable()
 export class SolicitudesService {
-  /*removeIfOwner(id: string, trabajadorId: number) {
-    throw new Error('Method not implemented.');
-  }*/
   constructor(
     @InjectModel(Solicitud.name)
     private readonly solicitudModel: Model<SolicitudDocument>,
@@ -36,24 +33,23 @@ export class SolicitudesService {
    * 1. Crear solicitud nueva
   ---------------------------------------------------------------- */
   async create(dto: CreateSolicitudDto, user: any) {
-  const estadoFinal =
-    user.role === 'ADMIN' && dto.estado
-      ? dto.estado
-      : SolicitudEstado.PENDIENTE;
+    const estadoFinal =
+      user.role === 'ADMIN' && dto.estado
+        ? dto.estado
+        : SolicitudEstado.PENDIENTE;
 
-  const solicitud = new this.solicitudModel({
-    tipo: dto.tipo,
-    descripcion: dto.descripcion,
-    fechaInicio: dto.fechaInicio ? new Date(dto.fechaInicio) : undefined,
-    fechaFin: dto.fechaFin ? new Date(dto.fechaFin) : undefined,
-    estado: estadoFinal,
-    trabajadorId: user.trabajadorId,
-  });
+    const solicitud = new this.solicitudModel({
+      tipo: dto.tipo,
+      descripcion: dto.descripcion,
+      fechaInicio: dto.fechaInicio ? new Date(dto.fechaInicio) : undefined,
+      fechaFin: dto.fechaFin ? new Date(dto.fechaFin) : undefined,
+      estado: estadoFinal,
+      trabajadorId: user.trabajadorId,
+    });
 
-  const saved = await solicitud.save();
-  return this.mapearSolicitud(saved.toObject());
-}
-
+    const saved = await solicitud.save();
+    return this.mapearSolicitud(saved.toObject());
+  }
 
   /* ----------------------------------------------------------------
    * 2. Obtener TODAS las solicitudes  (ADMIN)
@@ -100,7 +96,7 @@ export class SolicitudesService {
   }
 
   /* ----------------------------------------------------------------
-   * 5. Eliminar solicitud
+   * 5. Eliminar solicitud (ADMIN)
   ---------------------------------------------------------------- */
   async remove(id: string) {
     if (!isValidObjectId(id))
@@ -146,23 +142,22 @@ export class SolicitudesService {
   }
 
   /* ----------------------------------------------------------------
- * 5.b Eliminar si el propietario es el que llama y la solicitud está pendiente
----------------------------------------------------------------- */
-async removeIfOwner(id: string, trabajadorId: number) {
-  if (!isValidObjectId(id))
-    throw new BadRequestException('ID de solicitud inválido');
+   * 6. Eliminar si el propietario es el que llama y la solicitud está pendiente
+  ---------------------------------------------------------------- */
+  async removeIfOwner(id: string, trabajadorId: number) {
+    if (!isValidObjectId(id))
+      throw new BadRequestException('ID de solicitud inválido');
 
-  const solicitud = await this.solicitudModel.findById(id);
-  if (!solicitud) throw new NotFoundException('Solicitud no encontrada');
+    const solicitud = await this.solicitudModel.findById(id);
+    if (!solicitud) throw new NotFoundException('Solicitud no encontrada');
 
-  if (solicitud.trabajadorId !== trabajadorId)
-    throw new BadRequestException('No puedes cancelar esta solicitud');
+    if (String(solicitud.trabajadorId) !== String(trabajadorId))
+      throw new BadRequestException('No puedes cancelar esta solicitud');
 
-  if (solicitud.estado !== SolicitudEstado.PENDIENTE)
-    throw new BadRequestException('Solo se puede cancelar una solicitud pendiente');
+    if (solicitud.estado !== SolicitudEstado.PENDIENTE)
+      throw new BadRequestException('Solo se puede cancelar una solicitud pendiente');
 
-  await solicitud.deleteOne();
-  return { message: 'Solicitud cancelada correctamente' };
-}
-
+    await solicitud.deleteOne();
+    return { message: 'Solicitud cancelada correctamente' };
+  }
 }

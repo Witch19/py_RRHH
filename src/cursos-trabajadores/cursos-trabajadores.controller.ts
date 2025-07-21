@@ -23,7 +23,7 @@ import { InscribirDto } from './dto/inscripcion.dto';
 @Controller('cursos-trabajadores')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class CursosTrabajadoresController {
-  constructor(private readonly service: CursosTrabajadoresService) { }
+  constructor(private readonly service: CursosTrabajadoresService) {}
 
   @Post()
   @Roles('ADMIN', 'SUPERVISOR')
@@ -55,19 +55,17 @@ export class CursosTrabajadoresController {
   @Delete(':id')
   @Roles('ADMIN', 'TRABAJADOR')
   async remove(@Param('id') id: number, @Req() req: any) {
-    const user = req.user;
+    const userId = req.user.id;
     const inscripcion = await this.service.findById(id);
 
     if (!inscripcion) {
       throw new NotFoundException('Inscripción no encontrada');
     }
 
-    // ✅ Verificación correcta del rol y permiso
-    if (user.role !== 'ADMIN' && inscripcion.trabajador.id !== user.trabajadorId) {
+    if (req.user.role !== 'admin' && inscripcion.trabajador.id !== userId) {
       throw new ForbiddenException('No tienes permiso para retirar esta inscripción');
     }
 
     return this.service.remove(id);
   }
-
 }

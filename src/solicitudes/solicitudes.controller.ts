@@ -18,6 +18,7 @@ import { JwtAuthGuard } from '../auth/jwt.guard';
 import { Roles } from '../roles/roles.decorator';
 import { RolesGuard } from '../roles/roles.guard';
 
+// ✅ Interface para tipar req.user
 interface UserRequest extends Request {
   user: {
     userId: string;
@@ -32,16 +33,18 @@ interface UserRequest extends Request {
 export class SolicitudesController {
   constructor(private readonly service: SolicitudesService) {}
 
-  /** Crear nueva solicitud (TRABAJADOR o ADMIN) */
+  /** Crear nueva solicitud (usuario autenticado) */
   @Post()
-  @Roles('TRABAJADOR', 'ADMIN')
   async create(@Body() dto: CreateSolicitudDto, @Req() req: UserRequest) {
     return this.service.create(dto, req.user);
   }
 
-  /** Obtener solicitudes: ADMIN → todas, otros → las suyas */
+  /**
+   * Obtener solicitudes:
+   *  - ADMIN → todas
+   *  - resto → solo las suyas
+   */
   @Get()
-  @Roles('TRABAJADOR', 'ADMIN')
   async find(@Req() req: UserRequest) {
     const { role, trabajadorId } = req.user;
     return role === 'ADMIN'
@@ -49,9 +52,8 @@ export class SolicitudesController {
       : this.service.findByUser(trabajadorId);
   }
 
-  /** Obtener solo las propias (opcional) */
+  /** Ver exclusivamente las del usuario (opcional) */
   @Get('mias')
-  @Roles('TRABAJADOR', 'ADMIN')
   async findMine(@Req() req: UserRequest) {
     return this.service.findByUser(req.user.trabajadorId);
   }
@@ -63,13 +65,23 @@ export class SolicitudesController {
     return this.service.updateEstado(id, dto);
   }
 
-  /** Eliminar / cancelar solicitud */
-  @Delete(':id')
-  @Roles('TRABAJADOR', 'ADMIN')
-  async remove(@Param('id') id: string, @Req() req: UserRequest) {
-    const { role, trabajadorId } = req.user;
-    return role === 'ADMIN'
-      ? this.service.remove(id)
-      : this.service.removeIfOwner(id, trabajadorId);
-  }
+  /** Eliminar solicitud (solo ADMIN) */
+  /*@Delete(':id')
+  @Roles('ADMIN')
+  remove(@Param('id') id: string) {
+    return this.service.remove(id);
+  }*/
+
+  /** Eliminar / Cancelar solicitud
+ *  - ADMIN → elimina siempre
+ *  - Trabajador → solo si es suya y está PENDIENTE
+ */
+@Delete(':id')
+async remove(@Param('id') id: string, @Req() req: UserRequest) {
+  const { role, trabajadorId } = req.user;
+  return role === 'ADMIN'
+    ? this.service.remove(id)                    // sin restricciones
+    : this.service.removeIfOwner(id, trabajadorId); // validaciones
+}
+
 }

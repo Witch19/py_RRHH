@@ -41,6 +41,7 @@ export class SolicitudesController {
 
   /** Obtener solicitudes: ADMIN → todas, otros → las suyas */
   @Get()
+  @Roles('TRABAJADOR', 'ADMIN')
   async find(@Req() req: UserRequest) {
     const { role, trabajadorId } = req.user;
     return role === 'ADMIN'
@@ -48,8 +49,9 @@ export class SolicitudesController {
       : this.service.findByUser(trabajadorId);
   }
 
-  /** Opcional: solo las propias */
+  /** Obtener solo las propias (opcional) */
   @Get('mias')
+  @Roles('TRABAJADOR', 'ADMIN')
   async findMine(@Req() req: UserRequest) {
     return this.service.findByUser(req.user.trabajadorId);
   }
@@ -61,8 +63,9 @@ export class SolicitudesController {
     return this.service.updateEstado(id, dto);
   }
 
-  /** Eliminar o cancelar solicitud */
+  /** Eliminar / cancelar solicitud */
   @Delete(':id')
+  @Roles('TRABAJADOR', 'ADMIN')
   async remove(@Param('id') id: string, @Req() req: UserRequest) {
     const { role, trabajadorId } = req.user;
     return role === 'ADMIN'

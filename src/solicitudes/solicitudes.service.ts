@@ -30,7 +30,7 @@ export class SolicitudesService {
   ) {}
 
   /* ----------------------------------------------------------------
-   * 1. Crear solicitud nueva
+   * 1. Crear nueva solicitud
   ---------------------------------------------------------------- */
   async create(dto: CreateSolicitudDto, user: any) {
     const estadoFinal =
@@ -52,7 +52,7 @@ export class SolicitudesService {
   }
 
   /* ----------------------------------------------------------------
-   * 2. Obtener TODAS las solicitudes  (ADMIN)
+   * 2. Obtener TODAS las solicitudes (ADMIN)
   ---------------------------------------------------------------- */
   async findAll() {
     const docs = await this.solicitudModel
@@ -64,7 +64,7 @@ export class SolicitudesService {
   }
 
   /* ----------------------------------------------------------------
-   * 3. Obtener solicitudes por usuario
+   * 3. Obtener solicitudes por trabajador
   ---------------------------------------------------------------- */
   async findByUser(trabajadorId: number) {
     const docs = await this.solicitudModel
@@ -76,7 +76,7 @@ export class SolicitudesService {
   }
 
   /* ----------------------------------------------------------------
-   * 4. Cambiar estado
+   * 4. Cambiar estado (solo ADMIN)
   ---------------------------------------------------------------- */
   async updateEstado(id: string, dto: UpdateEstadoDto) {
     if (!isValidObjectId(id))
@@ -96,7 +96,7 @@ export class SolicitudesService {
   }
 
   /* ----------------------------------------------------------------
-   * 5. Eliminar solicitud (ADMIN)
+   * 5. Eliminar solicitud (solo ADMIN)
   ---------------------------------------------------------------- */
   async remove(id: string) {
     if (!isValidObjectId(id))
@@ -110,7 +110,27 @@ export class SolicitudesService {
   }
 
   /* ----------------------------------------------------------------
-   * ✨ Utilidad: unir solicitud + trabajador
+   * 6. Eliminar si es el dueño y está pendiente
+  ---------------------------------------------------------------- */
+  async removeIfOwner(id: string, trabajadorId: number) {
+    if (!isValidObjectId(id))
+      throw new BadRequestException('ID de solicitud inválido');
+
+    const solicitud = await this.solicitudModel.findById(id);
+    if (!solicitud) throw new NotFoundException('Solicitud no encontrada');
+
+    if (String(solicitud.trabajadorId) !== String(trabajadorId))
+      throw new BadRequestException('No puedes cancelar esta solicitud');
+
+    if (solicitud.estado !== SolicitudEstado.PENDIENTE)
+      throw new BadRequestException('Solo se puede cancelar una solicitud pendiente');
+
+    await solicitud.deleteOne();
+    return { message: 'Solicitud cancelada correctamente' };
+  }
+
+  /* ----------------------------------------------------------------
+   * Utilidad: unir solicitud + trabajador
   ---------------------------------------------------------------- */
   private async mapearSolicitud(doc: any) {
     const trabajador = await this.trabajadorRepo.findOne({
@@ -139,25 +159,5 @@ export class SolicitudesService {
           }
         : null,
     };
-  }
-
-  /* ----------------------------------------------------------------
-   * 6. Eliminar si el propietario es el que llama y la solicitud está pendiente
-  ---------------------------------------------------------------- */
-  async removeIfOwner(id: string, trabajadorId: number) {
-    if (!isValidObjectId(id))
-      throw new BadRequestException('ID de solicitud inválido');
-
-    const solicitud = await this.solicitudModel.findById(id);
-    if (!solicitud) throw new NotFoundException('Solicitud no encontrada');
-
-    if (String(solicitud.trabajadorId) !== String(trabajadorId))
-      throw new BadRequestException('No puedes cancelar esta solicitud');
-
-    if (solicitud.estado !== SolicitudEstado.PENDIENTE)
-      throw new BadRequestException('Solo se puede cancelar una solicitud pendiente');
-
-    await solicitud.deleteOne();
-    return { message: 'Solicitud cancelada correctamente' };
   }
 }

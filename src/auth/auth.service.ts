@@ -5,6 +5,7 @@ import {
   NotFoundException,
   BadRequestException,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -167,20 +168,46 @@ generateJwt(user: UserDocument) {
   /* ----------------------------------------------------------------
    * 5. LOGIN
   ---------------------------------------------------------------- */
-  async login(email: string, password: string) {
-    let user = await this.validateUser(email, password);
-    if (!user) throw new NotFoundException('Credenciales inválidas');
+  async login(credentials: { email: string; password: string }) {
+    const { email, password } = credentials;
 
-    user = await this.asegurarTrabajadorId(user);
+    // Buscar usuario por email
+    const user = await this.userModel.findOne({ email });
+    if (!user) {
+      throw new UnauthorizedException('Credenciales inválidas');
+    }
 
-    const token = this.generateJwt(user);
+    // Comparar contraseñas
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      throw new UnauthorizedException('Credenciales inválidas');
+    }
 
-    const { password: _pwd, ...userSafe } = user.toObject();
+    // Construir payload con trabajadorId incluido
+    const payload = {
+      sub: user._id,
+      email: user.email,
+      username: user.username,
+      role: user.role,
+      trabajadorId: user.trabajadorId ?? null, // ✅ esto es lo más importante
+    };
+
+    // Firmar el token
+    const token = this.jwtService.sign(payload);
+
+    // Retornar token y datos del usuario (sin password)
     return {
-      access_token: token,
-      user: { ...userSafe, id: userSafe._id },
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        username: user.username,
+        role: user.role,
+        trabajadorId: user.trabajadorId ?? null,
+      },
     };
   }
+
 
   /* ----------------------------------------------------------------
    * 6. PERFIL DEL USUARIO

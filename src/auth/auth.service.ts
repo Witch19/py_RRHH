@@ -11,8 +11,7 @@ import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { DeepPartial } from 'typeorm';
+import { Repository, DeepPartial } from 'typeorm';
 
 import { RegisterDto } from './dto/register.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -31,9 +30,7 @@ export class AuthService {
     private readonly tipoTrabajoRepo: Repository<TipoTrabajo>,
   ) { }
 
-  /* ----------------------------------------------------------------
-   * 1. REGISTRO
-  ---------------------------------------------------------------- */
+  /* 1. REGISTRO */
   async register(dto: RegisterDto) {
     try {
       const existing = await this.userModel.findOne({ email: dto.email });
@@ -43,13 +40,11 @@ export class AuthService {
 
       const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-      // Buscar si ya existe un trabajador con ese email
       let trabajador = await this.trabajadorRepo.findOne({
         where: { email: dto.email },
       });
 
       if (!trabajador) {
-        // Buscar tipoTrabajo si viene
         let tipoTrabajo: TipoTrabajo | null = null;
 
         if (dto.tipoTrabajoId !== undefined && dto.tipoTrabajoId !== null) {
@@ -58,18 +53,13 @@ export class AuthService {
             throw new BadRequestException('tipoTrabajoId inválido');
           }
 
-          tipoTrabajo = await this.tipoTrabajoRepo.findOne({
-            where: { id },
-          });
+          tipoTrabajo = await this.tipoTrabajoRepo.findOne({ where: { id } });
 
           if (!tipoTrabajo) {
-            throw new NotFoundException(
-              `Tipo de trabajo con ID ${id} no encontrado`,
-            );
+            throw new NotFoundException(`Tipo de trabajo con ID ${id} no encontrado`);
           }
         }
 
-        // Crear trabajador (usando la misma variable trabajador)
         trabajador = this.trabajadorRepo.create({
           nombre: dto.username,
           apellido: '-',
@@ -84,25 +74,28 @@ export class AuthService {
         trabajador = await this.trabajadorRepo.save(trabajador);
       }
 
-      // Crear usuario en MongoDB
       const createdUser = new this.userModel({
         username: dto.username,
         email: dto.email,
         password: hashedPassword,
         role: dto.role?.toUpperCase() || 'TRABAJADOR',
         trabajadorId: trabajador.id,
+        telefono: dto.telefono,
+        tipoTrabajoId: dto.tipoTrabajoId,
       });
 
       await createdUser.save();
 
+      const u = createdUser.toObject() as any;
+
       return {
         message: 'Usuario registrado con éxito',
         user: {
-          id: createdUser._id,
-          username: createdUser.username,
-          email: createdUser.email,
-          role: createdUser.role,
-          trabajadorId: createdUser.trabajadorId,
+          id: u._id,
+          username: u.username,
+          email: u.email,
+          role: u.role,
+          trabajadorId: u.trabajadorId ?? null,
         },
       };
     } catch (error) {
@@ -111,10 +104,7 @@ export class AuthService {
     }
   }
 
-
-  /* ----------------------------------------------------------------
-   * 2. VALIDACIÓN DE CREDENCIALES
-  ---------------------------------------------------------------- */
+  /* 2. VALIDAR CREDENCIALES */
   async validateUser(email: string, password: string): Promise<UserDocument | null> {
     const user = await this.userModel.findOne({ email }).exec();
     if (!user) return null;
@@ -123,44 +113,38 @@ export class AuthService {
     return passwordValid ? user : null;
   }
 
-  /* ----------------------------------------------------------------
-   * 3. GENERAR JWT
-  ---------------------------------------------------------------- */
+  /* 3. GENERAR JWT */
   generateJwt(user: UserDocument) {
+    const plainUser = typeof user.toObject === 'function' ? user.toObject() : user;
+
     const payload = {
-      sub: user._id,
-      email: user.email,
-      username: user.username,
-      role: user.role,
-      trabajadorId: user.trabajadorId,
+      sub: plainUser._id,
+      email: plainUser.email,
+      username: plainUser.username,
+      role: plainUser.role,
+      trabajadorId: plainUser.trabajadorId,
     };
 
     return this.jwtService.sign(payload);
   }
 
-  /* ----------------------------------------------------------------
-   * 4. ASEGURAR trabajadorId (login / flujos antiguos)
-  ---------------------------------------------------------------- */
+  /* 4. ASEGURAR trabajadorId */
   async asegurarTrabajadorId(user: UserDocument): Promise<UserDocument> {
-    if (user.trabajadorId) return user;
+    if ((user as any).trabajadorId) return user;
 
     const trabajador = await this.trabajadorRepo.findOne({
       where: { email: user.email },
     });
 
-    const trabajadorId = trabajador?.id ?? null;
-
-    if (trabajadorId) {
-      await this.userModel.findByIdAndUpdate(user._id, { trabajadorId });
-      user.trabajadorId = trabajadorId;
+    if (trabajador?.id) {
+      (user as any).trabajadorId = trabajador.id;
+      await user.save();
     }
 
     return user;
   }
 
-  /* ----------------------------------------------------------------
-   * 5. LOGIN
-  ---------------------------------------------------------------- */
+  /* 5. LOGIN */
   async login(email: string, password: string) {
     let user = await this.validateUser(email, password);
     if (!user) throw new NotFoundException('Credenciales inválidas');
@@ -168,38 +152,32 @@ export class AuthService {
     user = await this.asegurarTrabajadorId(user);
 
     const token = this.generateJwt(user);
-
     const { password: _pwd, ...userSafe } = user.toObject();
+
     return {
       access_token: token,
       user: { ...userSafe, id: userSafe._id },
     };
   }
 
-  /* ----------------------------------------------------------------
-   * 6. PERFIL DEL USUARIO
-  ---------------------------------------------------------------- */
+  /* 6. PERFIL */
   async getProfile(userId: string) {
     const user = await this.userModel.findById(userId).select('-password');
     if (!user) throw new NotFoundException('Usuario no encontrado');
     return user;
   }
 
-  /* ----------------------------------------------------------------
-   * 7. Obtener trabajador por email (utilidad)
-  ---------------------------------------------------------------- */
+  /* 7. Obtener trabajador por email */
   async getTrabajadorPorEmail(email: string) {
     return this.trabajadorRepo.findOne({ where: { email } });
   }
 
-  /* ----------------------------------------------------------------
- * 8. UPDATE PROFILE
----------------------------------------------------------------- */
+  /* 8. UPDATE PERFIL USUARIO */
   async updateProfile(userId: string, dto: UpdateUserDto) {
     const user = await this.userModel.findById(userId);
     if (!user) throw new NotFoundException('Usuario no encontrado');
 
-    // Validar si el nuevo correo ya existe
+    // Validar si el nuevo correo ya está en uso por otro usuario
     if (dto.email && dto.email !== user.email) {
       const emailExists = await this.userModel.findOne({ email: dto.email });
       if (emailExists) {
@@ -207,16 +185,55 @@ export class AuthService {
       }
     }
 
-    // Solo actualiza campos permitidos
+    // Aplicar actualizaciones
     if (dto.username) user.username = dto.username;
     if (dto.email) user.email = dto.email;
+    if (dto.role) user.role = dto.role;
+    if (dto.telefono) user.telefono = dto.telefono;
+    if (dto.tipoTrabajoId !== undefined) user.tipoTrabajoId = dto.tipoTrabajoId;
 
-    // 🚫 No se toca el rol
     await user.save();
+    const { password, ...safeUser } = user.toObject(); // sin contraseña
 
-    // Retorna el usuario sin contraseña
-    const { password, ...safeUser } = user.toObject();
-    return safeUser;
+    return safeUser; // ✅ Retornamos objeto plano sin password
   }
 
+
+  /* 9. LISTAR TODOS LOS USUARIOS (ADMIN) */
+  async findAll() {
+    return this.userModel.find().select('-password');
+  }
+
+  /* 10. ACTUALIZAR USUARIO (ADMIN) */
+  async updateUserByAdmin(id: string, dto: UpdateUserDto) {
+    const user = await this.userModel.findById(id);
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+
+    if (dto.username !== undefined) user.username = dto.username;
+    if (dto.email !== undefined) user.email = dto.email;
+    if (dto.role !== undefined) user.role = dto.role;
+    if (dto.telefono !== undefined) user.telefono = dto.telefono;
+    if (dto.tipoTrabajoId !== undefined) user.tipoTrabajoId = dto.tipoTrabajoId;
+
+    await user.save();
+
+    return {
+      message: 'Usuario actualizado correctamente',
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        telefono: user.telefono,
+        tipoTrabajoId: user.tipoTrabajoId,
+      },
+    };
+  }
+
+  /* 11. ELIMINAR USUARIO (ADMIN) */
+  async removeUser(id: string) {
+    const deleted = await this.userModel.findByIdAndDelete(id);
+    if (!deleted) throw new NotFoundException('Usuario no encontrado');
+    return { message: 'Usuario eliminado correctamente' };
+  }
 }

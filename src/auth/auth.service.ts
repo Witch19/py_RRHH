@@ -201,8 +201,40 @@ export class AuthService {
 
   /* 9. LISTAR TODOS LOS USUARIOS (ADMIN) */
   async findAll() {
-    return this.userModel.find().select('-password');
+    const usuarios = await this.userModel.find().select('-password');
+
+    const usuariosConDatos = await Promise.all(
+      usuarios.map(async (user) => {
+        let telefono: string | null = null;
+        let tipoTrabajo: string | null = null;
+
+        if (user.trabajadorId) {
+          const trabajador = await this.trabajadorRepo.findOne({
+            where: { id: user.trabajadorId },
+            relations: ['tipoTrabajo'], // incluye área
+          });
+
+          if (trabajador) {
+            telefono = trabajador.telefono || null;
+            tipoTrabajo = trabajador.tipoTrabajo?.nombre || null;
+          }
+        }
+
+        return {
+          _id: user._id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          telefono,
+          tipoTrabajo,
+        };
+      })
+    );
+
+    return usuariosConDatos;
   }
+
+
 
   /* 10. ACTUALIZAR USUARIO (ADMIN) */
   async updateUserByAdmin(id: string, dto: UpdateUserDto) {

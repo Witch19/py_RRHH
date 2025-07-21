@@ -25,6 +25,9 @@ export class CursosTrabajadoresService {
     private readonly cursoRepo: Repository<Curso>,
   ) {}
 
+  /* ────────────────────────────
+     Helpers
+  ──────────────────────────── */
   async findById(id: number) {
     return this.repo.findOne({
       where: { id },
@@ -32,6 +35,9 @@ export class CursosTrabajadoresService {
     });
   }
 
+  /* ────────────────────────────
+     ADMIN / SUPERVISOR: alta manual
+  ──────────────────────────── */
   async create(dto: CreateCursosTrabajadoresDto) {
     return this._crearRelacion(
       dto.trabajadorId,
@@ -41,6 +47,9 @@ export class CursosTrabajadoresService {
     );
   }
 
+  /* ────────────────────────────
+     Trabajador: inscribirse él mismo
+  ──────────────────────────── */
   async inscribir(dto: InscribirDto) {
     return this._crearRelacion(
       dto.trabajadorId,
@@ -50,6 +59,9 @@ export class CursosTrabajadoresService {
     );
   }
 
+  /* ────────────────────────────
+     Crear relación (uso compartido)
+  ──────────────────────────── */
   private async _crearRelacion(
     trabajadorId: number,
     cursoId: number,
@@ -67,12 +79,8 @@ export class CursosTrabajadoresService {
     }
 
     const yaInscrito = await this.repo.findOne({
-      where: {
-        trabajador: { id: trabajadorId },
-        curso: { id: cursoId },
-      },
+      where: { trabajador: { id: trabajadorId }, curso: { id: cursoId } },
     });
-
     if (yaInscrito) {
       throw new BadRequestException('Ya estás inscrito en este curso');
     }
@@ -87,13 +95,19 @@ export class CursosTrabajadoresService {
     return this.repo.save(nuevaRelacion);
   }
 
+  /* ────────────────────────────
+     Lecturas
+  ──────────────────────────── */
   async findAll() {
     const relaciones = await this.repo.find({
-      relations: ['curso', 'trabajador'],
+      relations: {
+        curso: true,
+        trabajador: true,
+      },
     });
 
     const resultado = relaciones.map((rel) => ({
-      id: rel.id, // 🔁 Esto es el "relacionId" en el frontend
+      id: rel.id,
       fechaRealizacion: rel.fechaRealizacion,
       aprobado: rel.aprobado,
       curso: {
@@ -111,6 +125,7 @@ export class CursosTrabajadoresService {
       },
     }));
 
+    console.log('Relaciones devueltas:', resultado); // 🔍 Debug temporal
     return resultado;
   }
 

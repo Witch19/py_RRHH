@@ -23,56 +23,51 @@ import { InscribirDto } from './dto/inscripcion.dto';
 @Controller('cursos-trabajadores')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class CursosTrabajadoresController {
-  constructor(private readonly service: CursosTrabajadoresService) {}
+  constructor(private readonly service: CursosTrabajadoresService) { }
 
-  // ADMIN o SUPERVISOR pueden crear inscripciones manualmente
   @Post()
   @Roles('ADMIN', 'SUPERVISOR')
   create(@Body() dto: CreateCursosTrabajadoresDto) {
     return this.service.create(dto);
   }
 
-  // Trabajador se inscribe por sí mismo
   @Post('inscribir')
   inscribir(@Body() dto: InscribirDto) {
     return this.service.inscribir(dto);
   }
 
-  // Listar todas las relaciones (ADMIN y trabajador pueden ver)
   @Get()
   findAll() {
     return this.service.findAll();
   }
 
-  // Obtener una inscripción específica
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.service.findOne(+id);
   }
 
-  // ADMIN o SUPERVISOR pueden modificar una relación
   @Patch(':id')
   @Roles('ADMIN', 'SUPERVISOR')
   update(@Param('id') id: string, @Body() dto: UpdateCursosTrabajadoresDto) {
     return this.service.update(+id, dto);
   }
 
-  // ADMIN o el mismo TRABAJADOR pueden eliminar una inscripción
   @Delete(':id')
   @Roles('ADMIN', 'TRABAJADOR')
-  async remove(@Param('id') id: string, @Req() req: any) {
+  async remove(@Param('id') id: number, @Req() req: any) {
     const user = req.user;
-    const inscripcion = await this.service.findById(+id);
+    const inscripcion = await this.service.findById(id);
 
     if (!inscripcion) {
       throw new NotFoundException('Inscripción no encontrada');
     }
 
-    // Solo ADMIN o el mismo trabajador dueño de la inscripción
+    // ✅ Verificación correcta del rol y permiso
     if (user.role !== 'ADMIN' && inscripcion.trabajador.id !== user.trabajadorId) {
-      throw new ForbiddenException('No tienes permiso para eliminar esta inscripción');
+      throw new ForbiddenException('No tienes permiso para retirar esta inscripción');
     }
 
-    return this.service.remove(+id);
+    return this.service.remove(id);
   }
+
 }

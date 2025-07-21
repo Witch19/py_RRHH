@@ -145,8 +145,8 @@ export class AuthService {
   }
 
   /* 5. LOGIN */
-  async login(email: string, password: string) {
-    let user = await this.validateUser(email, password);
+  async login(emailOrUsername: string, password: string) {
+    let user = await this.validateUser(emailOrUsername, password);
     if (!user) throw new NotFoundException('Credenciales inválidas');
 
     user = await this.asegurarTrabajadorId(user);

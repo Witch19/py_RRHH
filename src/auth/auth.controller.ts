@@ -22,7 +22,7 @@ import { RolesGuard } from '../roles/roles.guard';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   // 🟢 REGISTRO
   @Public()
@@ -31,21 +31,24 @@ export class AuthController {
     return this.authService.register(dto);
   }
 
-  // 🟢 LOGIN
+  // 🟢 LOGIN actualizado para email o username
   @Public()
   @Post('/login')
-  async login(@Body() body: { email: string; password: string }) {
-    const { email, password } = body;
-    if (!email || !password) {
-      throw new UnauthorizedException('Email y contraseña son obligatorios');
+  async login(@Body() body: { emailOrUsername: string; password: string }) {
+    const { emailOrUsername, password } = body;
+    if (!emailOrUsername || !password) {
+      throw new UnauthorizedException('Email o username y contraseña son obligatorios');
     }
 
-    let user = await this.authService.validateUser(email, password);
+    const user = await this.authService.validateUser(emailOrUsername, password);
     if (!user) throw new UnauthorizedException('Credenciales inválidas');
 
-    user = await this.authService.asegurarTrabajadorId(user);
-    const token = await this.authService.generateJwt(user);
-    const userData = typeof user.toObject === 'function' ? user.toObject() : user;
+    const userWithTrabajador = await this.authService.asegurarTrabajadorId(user);
+    const token = await this.authService.generateJwt(userWithTrabajador);
+    const userData = typeof userWithTrabajador.toObject === 'function'
+      ? userWithTrabajador.toObject()
+      : userWithTrabajador;
+
     const { password: _, ...userWithoutPassword } = userData;
 
     return {
@@ -67,7 +70,6 @@ export class AuthController {
   }
 
   // 🟢 ACTUALIZAR PERFIL PROPIO
-  // 🟢 ACTUALIZAR PERFIL PROPIO
   @Roles('ADMIN', 'TRABAJADOR')
   @Put('/profile')
   async updateProfile(@Req() req: any, @Body() dto: UpdateUserDto) {
@@ -86,7 +88,6 @@ export class AuthController {
       },
     };
   }
-
 
   // 🔐 ADMIN - LISTAR USUARIOS
   @Roles('ADMIN')

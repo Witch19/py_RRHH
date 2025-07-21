@@ -8,16 +8,22 @@ import {
 import { Trabajador } from 'src/trabajador/entities/trabajador.entity';
 import { Curso } from 'src/curso/entities/curso.entity';
 
-@Entity('cursos_trabajadores') // Nombre explícito de tabla si deseas
+@Entity('cursos_trabajadores')
 export class CursosTrabajadores {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Trabajador, trabajador => trabajador.cursos, { eager: true, onDelete: 'CASCADE' })
+  @ManyToOne(() => Trabajador, trabajador => trabajador.cursos, {
+    eager: true,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'trabajadorId' })
   trabajador: Trabajador;
 
-  @ManyToOne(() => Curso, curso => curso.cursosTrabajadores, { eager: true, onDelete: 'CASCADE' })
+  @ManyToOne(() => Curso, curso => curso.cursosTrabajadores, {
+    eager: true,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'cursoId' })
   curso: Curso;
 

@@ -1,4 +1,3 @@
-// src/cursos-trabajadores/cursos-trabajadores.service.ts
 import {
   Injectable,
   NotFoundException,
@@ -29,7 +28,6 @@ export class CursosTrabajadoresService {
   /* ────────────────────────────
      Helpers
   ──────────────────────────── */
-  /** Trae una inscripción con sus relaciones */
   async findById(id: number) {
     return this.repo.findOne({
       where: { id },
@@ -53,7 +51,6 @@ export class CursosTrabajadoresService {
      Trabajador: inscribirse él mismo
   ──────────────────────────── */
   async inscribir(dto: InscribirDto) {
-    // Siempre aprobado = false al inscribirse
     return this._crearRelacion(
       dto.trabajadorId,
       dto.cursoId,
@@ -71,19 +68,16 @@ export class CursosTrabajadoresService {
     fechaRealizacion?: string,
     aprobado = false,
   ) {
-    // Validar trabajador
     const trabajador = await this.trabajadorRepo.findOneBy({ id: trabajadorId });
     if (!trabajador) {
       throw new NotFoundException(`Trabajador con id ${trabajadorId} no encontrado`);
     }
 
-    // Validar curso
     const curso = await this.cursoRepo.findOneBy({ id: cursoId });
     if (!curso) {
       throw new NotFoundException(`Curso con id ${cursoId} no encontrado`);
     }
 
-    // Evitar duplicados
     const yaInscrito = await this.repo.findOne({
       where: { trabajador: { id: trabajadorId }, curso: { id: cursoId } },
     });
@@ -112,7 +106,7 @@ export class CursosTrabajadoresService {
       },
     });
 
-    return relaciones.map((rel) => ({
+    const resultado = relaciones.map((rel) => ({
       id: rel.id,
       fechaRealizacion: rel.fechaRealizacion,
       aprobado: rel.aprobado,
@@ -127,18 +121,18 @@ export class CursosTrabajadoresService {
         id: rel.trabajador.id,
         nombre: rel.trabajador.nombre,
         apellido: rel.trabajador.apellido,
-        email: rel.trabajador.email, // ✅ email incluido
+        email: rel.trabajador.email,
       },
     }));
+
+    console.log('Relaciones devueltas:', resultado); // 🔍 Debug temporal
+    return resultado;
   }
 
   findOne(id: number) {
     return this.findById(id);
   }
 
-  /* ────────────────────────────
-     Actualización
-  ──────────────────────────── */
   async update(id: number, dto: UpdateCursosTrabajadoresDto) {
     const registro = await this.findById(id);
     if (!registro) throw new NotFoundException('Registro no encontrado');
@@ -147,9 +141,6 @@ export class CursosTrabajadoresService {
     return this.repo.save(registro);
   }
 
-  /* ────────────────────────────
-     Eliminación
-  ──────────────────────────── */
   async remove(id: number) {
     const registro = await this.findById(id);
     if (!registro) throw new NotFoundException('Registro no encontrado');

@@ -124,19 +124,25 @@ export class AuthService {
   }
 
   /* ----------------------------------------------------------------
-   * 3. GENERAR JWT
-  ---------------------------------------------------------------- */
-  generateJwt(user: UserDocument) {
-    const payload = {
-      sub: user._id,
-      email: user.email,
-      username: user.username,
-      role: user.role,
-      trabajadorId: user.trabajadorId,
-    };
+ * 3. GENERAR JWT
+---------------------------------------------------------------- */
+generateJwt(user: UserDocument) {
+  const payload = {
+    sub: user._id,
+    email: user.email,
+    username: user.username,
+    role: user.role,
+    trabajadorId: user.trabajadorId,
+  };
 
-    return this.jwtService.sign(payload);
-  }
+  const token = this.jwtService.sign(payload); // ✅ se genera aquí
+
+  return {
+    access_token: token,
+    user: { ...user.toObject(), id: user._id }, // ✅ conversion segura
+  };
+}
+
 
   /* ----------------------------------------------------------------
    * 4. ASEGURAR trabajadorId (login / flujos antiguos)

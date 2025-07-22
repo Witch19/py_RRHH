@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Aspirante } from './entities/aspirante.entity';
@@ -28,21 +28,24 @@ export class AspiranteService {
       throw new NotFoundException('Tipo de trabajo no encontrado');
     }
 
-    let cvUrl: string | undefined;
+    let cvUrl: string | undefined = undefined;
 
     if (file && file.buffer) {
-      // Validación de tipo de archivo
       if (file.mimetype !== 'application/pdf') {
         throw new BadRequestException('Solo se permiten archivos PDF');
       }
 
       try {
+        console.log('📎 Recibido archivo:', file.originalname);
         const uploadResult = await this.uploadToCloudinary(file.buffer, file.originalname);
         cvUrl = uploadResult.secure_url;
         console.log('✅ CV subido a Cloudinary:', cvUrl);
       } catch (error) {
         console.error('❌ Error al subir a Cloudinary:', error);
+        throw new InternalServerErrorException('Error al subir el archivo');
       }
+    } else {
+      console.warn('⚠️ No se recibió ningún archivo para subir');
     }
 
     const aspirante = this.repo.create({
@@ -54,7 +57,7 @@ export class AspiranteService {
     });
 
     const saved = await this.repo.save(aspirante);
-    console.log('📝 Aspirante guardado:', saved);
+    console.log('📝 Aspirante guardado en base de datos:', saved);
     return saved;
   }
 

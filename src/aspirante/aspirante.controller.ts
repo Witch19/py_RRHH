@@ -9,6 +9,7 @@ import {
   Delete,
   Param,
   UseGuards,
+  Logger,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
@@ -22,6 +23,8 @@ import { RolesGuard } from '../roles/roles.guard';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('aspirante')
 export class AspiranteController {
+  private readonly logger = new Logger(AspiranteController.name);
+
   constructor(private readonly aspiranteService: AspiranteService) {}
 
   // 🟢 Registro público de aspirantes (con CV opcional)
@@ -37,6 +40,12 @@ export class AspiranteController {
     @Body() body: CreateAspiranteDto,
     @UploadedFile() file: Express.Multer.File,
   ) {
+    if (file) {
+      this.logger.log(`📎 Archivo recibido: ${file.originalname} (${file.mimetype}, ${file.size} bytes)`);
+    } else {
+      this.logger.warn(`⚠️ No se recibió ningún archivo en la solicitud.`);
+    }
+
     return this.aspiranteService.create(body, file);
   }
 

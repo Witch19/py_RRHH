@@ -1,27 +1,38 @@
+// src/main.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import * as bodyParser from 'body-parser';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // Servir archivos estáticos (como CVs subidos)
+  // Servir archivos estáticos (por si guardas algo local)
   app.useStaticAssets(join(__dirname, '..', 'uploads'), {
     prefix: '/uploads',
   });
 
-  // 🔺 Aumenta límite de carga para JSON y formularios
-  app.use(bodyParser.json({ limit: '10mb' }));
-  app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
+  // Aumentar el límite de carga de formularios y JSON (PDFs)
+  app.use(bodyParser.json({ limit: '20mb' }));
+  app.use(bodyParser.urlencoded({ limit: '20mb', extended: true }));
 
-  // 🔺 Habilita CORS para permitir acceso desde el frontend
+  // Activar CORS
   app.enableCors({
-    origin: '*', // o especifica tu frontend exacto
+    origin: '*', // puedes poner aquí la URL exacta de tu frontend en producción
     methods: 'GET,POST,PUT,DELETE',
     allowedHeaders: 'Content-Type, Authorization',
   });
+
+  // Validación global (para los DTOs como CreateAspiranteDto)
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: false,
+      transform: true,
+    }),
+  );
 
   await app.listen(3105);
 }

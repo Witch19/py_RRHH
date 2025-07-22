@@ -9,19 +9,19 @@ import { Type } from 'class-transformer';
 
 export class CreateAspiranteDto {
   @IsString()
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'El nombre es obligatorio' })
   nombre: string;
 
-  @IsEmail()
-  @IsString()
+  @IsEmail({}, { message: 'Email inválido' })
+  @IsNotEmpty({ message: 'El email es obligatorio' })
   email: string;
 
   @IsOptional()
   @IsString()
   mensaje?: string;
 
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'El tipo de trabajo es obligatorio' })
   @Type(() => Number)
-  @IsNumber()
+  @IsNumber({}, { message: 'El tipo de trabajo debe ser un número' })
   tipoTrabajoId: number;
 }

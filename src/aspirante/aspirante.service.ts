@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Aspirante } from './entities/aspirante.entity';
@@ -22,21 +27,35 @@ export class AspiranteService {
   ) {}
 
   async create(data, file: Express.Multer.File) {
-    const tipoTrabajo = await this.tipoRepo.findOneBy({ id: Number(data.tipoTrabajoId) });
+    const tipoTrabajo = await this.tipoRepo.findOneBy({
+      id: Number(data.tipoTrabajoId),
+    });
 
     if (!tipoTrabajo) {
       throw new NotFoundException('Tipo de trabajo no encontrado');
     }
 
-    let cvUrl: string | undefined = undefined;
+    console.log('📥 Datos recibidos:', {
+      nombre: data.nombre,
+      email: data.email,
+      tipoTrabajoId: data.tipoTrabajoId,
+      mensaje: data.mensaje,
+    });
+
+    let cvUrl: string | undefined;
 
     if (file && file.buffer) {
+      console.log('📎 Archivo recibido:', {
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+        size: file.size,
+      });
+
       if (file.mimetype !== 'application/pdf') {
         throw new BadRequestException('Solo se permiten archivos PDF');
       }
 
       try {
-        console.log('📎 Recibido archivo:', file.originalname);
         const uploadResult = await this.uploadToCloudinary(file.buffer, file.originalname);
         cvUrl = uploadResult.secure_url;
         console.log('✅ CV subido a Cloudinary:', cvUrl);
@@ -45,7 +64,7 @@ export class AspiranteService {
         throw new InternalServerErrorException('Error al subir el archivo');
       }
     } else {
-      console.warn('⚠️ No se recibió ningún archivo para subir');
+      console.warn('⚠️ No se recibió ningún archivo o archivo vacío');
     }
 
     const aspirante = this.repo.create({
@@ -70,8 +89,14 @@ export class AspiranteService {
           public_id: filename.split('.')[0],
         },
         (error: UploadApiErrorResponse | undefined, result: UploadApiResponse | undefined) => {
-          if (error) return reject(error);
-          if (!result) return reject(new Error('No result from Cloudinary'));
+          if (error) {
+            console.error('❌ Cloudinary upload_stream error:', error);
+            return reject(error);
+          }
+          if (!result) {
+            console.error('❌ Cloudinary: no result recibido');
+            return reject(new Error('No result from Cloudinary'));
+          }
           resolve(result);
         },
       );

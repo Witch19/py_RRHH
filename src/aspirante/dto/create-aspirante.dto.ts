@@ -1,4 +1,3 @@
-// src/aspirante/dto/create-aspirante.dto.ts
 import {
   IsString,
   IsEmail,
@@ -14,6 +13,7 @@ export class CreateAspiranteDto {
   nombre: string;
 
   @IsEmail()
+  @IsString()
   email: string;
 
   @IsOptional()

@@ -43,7 +43,7 @@ export class AspiranteController {
     @Body() body: CreateAspiranteDto,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.aspiranteService.create(body, file?.filename);
+    return this.aspiranteService.create(body, file); // ✅ Le pasamos el archivo completo
   }
 
   @Roles('ADMIN')

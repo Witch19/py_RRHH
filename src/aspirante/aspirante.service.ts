@@ -3,9 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Aspirante } from './entities/aspirante.entity';
 import { TipoTrabajo } from '../tipo-trabajo/entities/tipo-trabajo.entity';
-import { v2 as cloudinary } from 'cloudinary';
-import * as fs from 'fs';
-import * as path from 'path';
+import { v2 as cloudinary, UploadApiResponse, UploadApiErrorResponse } from 'cloudinary';
+import { Readable } from 'stream';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
@@ -22,7 +21,7 @@ export class AspiranteService {
     private readonly tipoRepo: Repository<TipoTrabajo>,
   ) {}
 
-  async create(data, filename: string) {
+  async create(data, file: Express.Multer.File) {
     const tipoTrabajo = await this.tipoRepo.findOneBy({ id: Number(data.tipoTrabajoId) });
 
     if (!tipoTrabajo) {
@@ -31,23 +30,15 @@ export class AspiranteService {
 
     let cvUrl: string | undefined = undefined;
 
-    if (filename) {
-      const localPath = path.join(__dirname, '..', '..', 'uploads', 'cv', filename);
-
+    if (file && file.buffer) {
       try {
-        const uploadResult = await cloudinary.uploader.upload(localPath, {
-          resource_type: 'raw',
-          folder: 'rrhh-cv',
-          public_id: filename.split('.')[0],
-        });
-
+        const uploadResult = await this.uploadToCloudinary(file.buffer, file.originalname);
         cvUrl = uploadResult.secure_url;
-
-        // Borra el archivo local después de subirlo a Cloudinary
-        fs.unlinkSync(localPath);
       } catch (error) {
-        console.error('Error subiendo a Cloudinary:', error);
+        console.error('❌ Error al subir a Cloudinary:', error);
       }
+    } else {
+      console.warn('⚠️ No se recibió ningún archivo o buffer para subir.');
     }
 
     const aspirante = this.repo.create({
@@ -58,7 +49,28 @@ export class AspiranteService {
       cvUrl,
     });
 
-    return this.repo.save(aspirante);
+    const saved = await this.repo.save(aspirante);
+    console.log('📝 Aspirante guardado:', saved);
+    return saved;
+  }
+
+  private async uploadToCloudinary(buffer: Buffer, filename: string): Promise<UploadApiResponse> {
+    return new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          resource_type: 'raw',
+          folder: 'rrhh-cv',
+          public_id: filename.split('.')[0],
+        },
+        (error: UploadApiErrorResponse | undefined, result: UploadApiResponse | undefined) => {
+          if (error) return reject(error);
+          if (!result) return reject(new Error('No result from Cloudinary'));
+          resolve(result);
+        },
+      );
+
+      Readable.from(buffer).pipe(stream);
+    });
   }
 
   findAll() {

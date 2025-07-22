@@ -1,3 +1,4 @@
+// src/aspirante/aspirante.controller.ts
 import {
   Controller,
   Post,
@@ -10,15 +11,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
+import { memoryStorage } from 'multer'; // ✅ importante
 import { AspiranteService } from './aspirante.service';
 import { Public } from '../public.decorator';
 import { CreateAspiranteDto } from './dto/create-aspirante.dto';
 import { Roles } from '../roles/roles.decorator';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 import { RolesGuard } from '../roles/roles.guard';
-
-import { extname } from 'path';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('aspirante')
@@ -29,20 +28,12 @@ export class AspiranteController {
   @Post()
   @UseInterceptors(
     FileInterceptor('cv', {
-      storage: diskStorage({
-        destination: './uploads/cv/',
-        filename: (_req, file, cb) => {
-          const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${extname(file.originalname)}`;
-          cb(null, uniqueName);
-        },
-      }),
-      limits: {
-        fileSize: 10 * 1024 * 1024, // ✅ Limite de 10MB
-      },
+      storage: memoryStorage(), // ✅ usamos almacenamiento en memoria
+      limits: { fileSize: 10 * 1024 * 1024 }, // ✅ opcional: límite 10MB
     }),
   )
-  create(
-    @Body() body: CreateAspiranteDto,
+  async create(
+    @Body() body,
     @UploadedFile() file: Express.Multer.File,
   ) {
     return this.aspiranteService.create(body, file);

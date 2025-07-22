@@ -32,19 +32,14 @@ export class SolicitudesService {
   /* ----------------------------------------------------------------
    * 1. Crear nueva solicitud
   ---------------------------------------------------------------- */
-  async create(dto: CreateSolicitudDto, user: any) {
-    const estadoFinal =
-      user.role === 'ADMIN' && dto.estado
-        ? dto.estado
-        : SolicitudEstado.PENDIENTE;
-
+  async create(dto: CreateSolicitudDto, trabajadorId: number) {
     const solicitud = new this.solicitudModel({
       tipo: dto.tipo,
       descripcion: dto.descripcion,
       fechaInicio: dto.fechaInicio ? new Date(dto.fechaInicio) : undefined,
       fechaFin: dto.fechaFin ? new Date(dto.fechaFin) : undefined,
-      estado: estadoFinal,
-      trabajadorId: user.trabajadorId,
+      estado: SolicitudEstado.PENDIENTE,
+      trabajadorId: trabajadorId,
     });
 
     const saved = await solicitud.save();

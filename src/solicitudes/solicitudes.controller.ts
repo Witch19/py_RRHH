@@ -36,7 +36,8 @@ export class SolicitudesController {
   /** Crear nueva solicitud (usuario autenticado) */
   @Post()
   async create(@Body() dto: CreateSolicitudDto, @Req() req: UserRequest) {
-    return this.service.create(dto, req.user);
+    const { trabajadorId } = req.user;
+    return this.service.create(dto, trabajadorId);
   }
 
   /**
@@ -65,23 +66,15 @@ export class SolicitudesController {
     return this.service.updateEstado(id, dto);
   }
 
-  /** Eliminar solicitud (solo ADMIN) */
-  /*@Delete(':id')
-  @Roles('ADMIN')
-  remove(@Param('id') id: string) {
-    return this.service.remove(id);
-  }*/
-
   /** Eliminar / Cancelar solicitud
- *  - ADMIN → elimina siempre
- *  - Trabajador → solo si es suya y está PENDIENTE
- */
-@Delete(':id')
-async remove(@Param('id') id: string, @Req() req: UserRequest) {
-  const { role, trabajadorId } = req.user;
-  return role === 'ADMIN'
-    ? this.service.remove(id)                    // sin restricciones
-    : this.service.removeIfOwner(id, trabajadorId); // validaciones
-}
-
+   *  - ADMIN → elimina siempre
+   *  - Trabajador → solo si es suya y está PENDIENTE
+   */
+  @Delete(':id')
+  async remove(@Param('id') id: string, @Req() req: UserRequest) {
+    const { role, trabajadorId } = req.user;
+    return role === 'ADMIN'
+      ? this.service.remove(id) // sin restricciones
+      : this.service.removeIfOwner(id, trabajadorId); // validaciones
+  }
 }

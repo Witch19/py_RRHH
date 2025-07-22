@@ -9,10 +9,9 @@ import {
   Delete,
   Param,
   UseGuards,
-  Logger,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
+import { diskStorage } from 'multer';
 import { AspiranteService } from './aspirante.service';
 import { Public } from '../public.decorator';
 import { CreateAspiranteDto } from './dto/create-aspirante.dto';
@@ -23,40 +22,34 @@ import { RolesGuard } from '../roles/roles.guard';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('aspirante')
 export class AspiranteController {
-  private readonly logger = new Logger(AspiranteController.name);
-
   constructor(private readonly aspiranteService: AspiranteService) {}
 
-  // 🟢 Registro público de aspirantes (con CV opcional)
   @Public()
   @Post()
   @UseInterceptors(
     FileInterceptor('cv', {
-      storage: memoryStorage(),
-      limits: { fileSize: 10 * 1024 * 1024 }, // Límite de 10MB
+      storage: diskStorage({
+        destination: './uploads/cv/',
+        filename: (_req, file, cb) => {
+          const name = `${Date.now()}-${file.originalname}`;
+          cb(null, name);
+        },
+      }),
     }),
   )
-  async create(
+  create(
     @Body() body: CreateAspiranteDto,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    if (file) {
-      this.logger.log(`📎 Archivo recibido: ${file.originalname} (${file.mimetype}, ${file.size} bytes)`);
-    } else {
-      this.logger.warn(`⚠️ No se recibió ningún archivo en la solicitud.`);
-    }
-
-    return this.aspiranteService.create(body, file);
+    return this.aspiranteService.create(body, file?.filename);
   }
 
-  // 🔒 Solo ADMIN puede ver aspirantes
   @Roles('ADMIN')
   @Get()
   findAll() {
     return this.aspiranteService.findAll();
   }
 
-  // 🔒 Solo ADMIN puede eliminar aspirantes
   @Roles('ADMIN')
   @Delete(':id')
   remove(@Param('id') id: string) {

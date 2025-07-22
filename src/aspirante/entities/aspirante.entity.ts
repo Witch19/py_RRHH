@@ -1,9 +1,9 @@
+// src/aspirante/entities/aspirante.entity.ts
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
-  JoinColumn,
 } from 'typeorm';
 import { TipoTrabajo } from '../../tipo-trabajo/entities/tipo-trabajo.entity';
 
@@ -25,6 +25,5 @@ export class Aspirante {
   cvUrl: string;
 
   @ManyToOne(() => TipoTrabajo, { eager: true })
-  @JoinColumn({ name: 'tipoTrabajoId' }) // opcional para claridad
   tipoTrabajo: TipoTrabajo;
 }

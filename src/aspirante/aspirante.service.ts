@@ -24,7 +24,7 @@ export class AspiranteService {
     private readonly repo: Repository<Aspirante>,
     @InjectRepository(TipoTrabajo)
     private readonly tipoRepo: Repository<TipoTrabajo>,
-  ) {}
+  ) { }
 
   async create(data, file: Express.Multer.File) {
     const tipoTrabajo = await this.tipoRepo.findOneBy({
@@ -87,15 +87,15 @@ export class AspiranteService {
 
   private async uploadToCloudinary(buffer: Buffer, filename: string): Promise<UploadApiResponse> {
     return new Promise((resolve, reject) => {
+      console.log('Iniciando upload a Cloudinary, archivo:', filename, 'Tamaño buffer:', buffer.length);
       const stream = cloudinary.uploader.upload_stream(
         {
-          resource_type: 'raw', // importante para PDFs
+          resource_type: 'auto',  // Cambiado a 'auto'
           folder: 'rrhh-cv',
           public_id: filename.split('.')[0],
         },
         (error: UploadApiErrorResponse | undefined, result: UploadApiResponse | undefined) => {
           if (error) {
-            // Log de error en upload stream
             console.error('❌ Cloudinary upload_stream error:', error);
             return reject(error);
           }
@@ -103,6 +103,7 @@ export class AspiranteService {
             console.error('❌ Cloudinary: no result recibido');
             return reject(new Error('No result from Cloudinary'));
           }
+          console.log('✅ Upload exitoso:', result.secure_url);
           resolve(result);
         },
       );
@@ -110,6 +111,7 @@ export class AspiranteService {
       Readable.from(buffer).pipe(stream);
     });
   }
+
 
   async findAll() {
     const aspirantes = await this.repo.find({

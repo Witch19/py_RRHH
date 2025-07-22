@@ -1,4 +1,3 @@
-// src/aspirante/aspirante.controller.ts
 import {
   Controller,
   Post,
@@ -37,13 +36,16 @@ export class AspiranteController {
           cb(null, uniqueName);
         },
       }),
+      limits: {
+        fileSize: 10 * 1024 * 1024, // ✅ Limite de 10MB
+      },
     }),
   )
   create(
     @Body() body: CreateAspiranteDto,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.aspiranteService.create(body, file); // ✅ Le pasamos el archivo completo
+    return this.aspiranteService.create(body, file);
   }
 
   @Roles('ADMIN')

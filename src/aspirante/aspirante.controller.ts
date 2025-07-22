@@ -19,6 +19,8 @@ import { Roles } from '../roles/roles.decorator';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 import { RolesGuard } from '../roles/roles.guard';
 
+import { extname } from 'path';
+
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('aspirante')
 export class AspiranteController {
@@ -31,8 +33,8 @@ export class AspiranteController {
       storage: diskStorage({
         destination: './uploads/cv/',
         filename: (_req, file, cb) => {
-          const name = `${Date.now()}-${file.originalname}`;
-          cb(null, name);
+          const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${extname(file.originalname)}`;
+          cb(null, uniqueName);
         },
       }),
     }),

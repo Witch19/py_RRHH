@@ -249,6 +249,24 @@ export class AuthService {
 
     await user.save();
 
+    if (user.trabajadorId && dto.tipoTrabajoId !== undefined) {
+      const trabajador = await this.trabajadorRepo.findOne({
+        where: { id: user.trabajadorId },
+        relations: ['tipoTrabajo'],
+      });
+
+      if (trabajador) {
+        const nuevoTipoTrabajo = await this.tipoTrabajoRepo.findOne({
+          where: { id: dto.tipoTrabajoId },
+        });
+
+        if (nuevoTipoTrabajo) {
+          trabajador.tipoTrabajo = nuevoTipoTrabajo;
+          await this.trabajadorRepo.save(trabajador);
+        }
+      }
+    }
+
     return {
       message: 'Usuario actualizado correctamente',
       user: {
@@ -261,6 +279,7 @@ export class AuthService {
       },
     };
   }
+
 
   /* 11. ELIMINAR USUARIO (ADMIN) */
   async removeUser(id: string) {

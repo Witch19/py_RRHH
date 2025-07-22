@@ -33,18 +33,21 @@ export class SolicitudesService {
    * 1. Crear nueva solicitud
   ---------------------------------------------------------------- */
   async create(dto: CreateSolicitudDto, trabajadorId: number) {
-    const solicitud = new this.solicitudModel({
-      tipo: dto.tipo,
-      descripcion: dto.descripcion,
-      fechaInicio: dto.fechaInicio ? new Date(dto.fechaInicio) : undefined,
-      fechaFin: dto.fechaFin ? new Date(dto.fechaFin) : undefined,
-      estado: SolicitudEstado.PENDIENTE,
-      trabajadorId: trabajadorId,
-    });
+  console.log('Creando solicitud con:', dto, 'para trabajador:', trabajadorId);
 
-    const saved = await solicitud.save();
-    return this.mapearSolicitud(saved.toObject());
-  }
+  const solicitud = new this.solicitudModel({
+    tipo: dto.tipo,
+    descripcion: dto.descripcion,
+    fechaInicio: dto.fechaInicio ? new Date(dto.fechaInicio) : undefined,
+    fechaFin: dto.fechaFin ? new Date(dto.fechaFin) : undefined,
+    estado: SolicitudEstado.PENDIENTE,
+    trabajadorId: trabajadorId, // aquí podría fallar si viene undefined
+  });
+
+  const saved = await solicitud.save(); // aquí puede estar lanzando el 500
+  return this.mapearSolicitud(saved.toObject());
+}
+
 
   /* ----------------------------------------------------------------
    * 2. Obtener TODAS las solicitudes (ADMIN)

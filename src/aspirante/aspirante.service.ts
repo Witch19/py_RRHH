@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Aspirante } from './entities/aspirante.entity';
 import { TipoTrabajo } from '../tipo-trabajo/entities/tipo-trabajo.entity';
 import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class AspiranteService {
@@ -21,12 +22,14 @@ export class AspiranteService {
       throw new NotFoundException('Tipo de trabajo no encontrado');
     }
 
+    const host = process.env.HOST || 'http://localhost:3005';
+
     const aspirante = this.repo.create({
       nombre: data.nombre,
       email: data.email,
       mensaje: data.mensaje,
       tipoTrabajo,
-      cvUrl: filename ? `${filename}` : undefined, // Solo el nombre del archivo
+      cvUrl: filename ? `${host}/uploads/cv/${filename}` : undefined,
     });
 
     return this.repo.save(aspirante);
@@ -49,7 +52,8 @@ export class AspiranteService {
 
     // Eliminar archivo si existe
     if (aspirante.cvUrl) {
-      const filePath = `./public/uploads/cv/${aspirante.cvUrl}`;
+      const fileName = path.basename(aspirante.cvUrl); // Extraer solo el nombre del archivo
+      const filePath = path.join(__dirname, '..', '..', 'uploads', 'cv', fileName);
       try {
         fs.unlinkSync(filePath);
       } catch (e) {

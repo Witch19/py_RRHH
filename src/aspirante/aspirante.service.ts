@@ -35,6 +35,7 @@ export class AspiranteService {
       throw new NotFoundException('Tipo de trabajo no encontrado');
     }
 
+    // Log para ver datos recibidos
     console.log('📥 Datos recibidos:', {
       nombre: data.nombre,
       email: data.email,
@@ -45,12 +46,14 @@ export class AspiranteService {
     let cvUrl: string | undefined;
 
     if (file && file.buffer) {
+      // Log para verificar archivo recibido
       console.log('📎 Archivo recibido:', {
         originalname: file.originalname,
         mimetype: file.mimetype,
         size: file.size,
       });
 
+      // Validar tipo de archivo PDF
       if (file.mimetype !== 'application/pdf') {
         throw new BadRequestException('Solo se permiten archivos PDF');
       }
@@ -60,6 +63,7 @@ export class AspiranteService {
         cvUrl = uploadResult.secure_url;
         console.log('✅ CV subido a Cloudinary:', cvUrl);
       } catch (error) {
+        // Log detallado del error en Cloudinary
         console.error('❌ Error al subir a Cloudinary:', error);
         throw new InternalServerErrorException('Error al subir el archivo');
       }
@@ -76,6 +80,7 @@ export class AspiranteService {
     });
 
     const saved = await this.repo.save(aspirante);
+    // Log de confirmación de guardado en BD
     console.log('📝 Aspirante guardado en base de datos:', saved);
     return saved;
   }
@@ -84,12 +89,13 @@ export class AspiranteService {
     return new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         {
-          resource_type: 'raw',
+          resource_type: 'raw', // importante para PDFs
           folder: 'rrhh-cv',
           public_id: filename.split('.')[0],
         },
         (error: UploadApiErrorResponse | undefined, result: UploadApiResponse | undefined) => {
           if (error) {
+            // Log de error en upload stream
             console.error('❌ Cloudinary upload_stream error:', error);
             return reject(error);
           }
